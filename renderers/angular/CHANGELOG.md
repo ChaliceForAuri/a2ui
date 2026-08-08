@@ -1,6 +1,12 @@
 ## Unreleased
 
 - (v0_9) Implement `createComponentImplementation` helper and deprecate `extraComponents` and `functions` in `BasicCatalogOptions` to align with the core API. [#2060](https://github.com/a2ui-project/a2ui/pull/2060)
+- (v0_9) Support universal Web Components in the v0.9 renderer:
+  - Add `UniversalBasicCatalog`, `NativeBasicCatalog`, and `BasicCatalogBase` supporting both universal Web Components from `@a2ui/web_core` and native Angular `@Component` implementations.
+  - Add `toWebComponent` adapter to convert custom Angular `@Component` implementations into W3C Custom Elements with dynamic DI injector forwarding and reconnection handling.
+  - Update `ComponentHostComponent` to dynamically mount either universal Web Components or native Angular components based on catalog definitions.
+  - Update `SurfaceComponent` with pure computed surface ID derivation and reactive surface registration via constructor `effect()`.
+  - Add standalone helper `provideA2Ui` configuration function and `A2UI_USE_UNIVERSAL_COMPONENTS` injection token for Angular applications. [#2273](https://github.com/a2ui-project/a2ui/pull/2273)
 
 ## 0.10.5
 

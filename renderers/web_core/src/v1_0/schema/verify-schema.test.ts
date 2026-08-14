@@ -171,4 +171,51 @@ describe('A2UI Schema Verification v1.0', () => {
     const result = ErrorMessageSchema.safeParse(invalid);
     assert.strictEqual(result.success, false);
   });
+
+  it('validates DeleteSurfaceMessage and AgentFunctionResponseMessage v1.0', () => {
+    const delMsg = {version: 'v1.0', deleteSurface: {surfaceId: 's1'}};
+    assert.strictEqual(DeleteSurfaceMessageSchema.safeParse(delMsg).success, true);
+
+    const agentResp = {
+      version: 'v1.0',
+      agentFunctionResponse: {
+        functionCallId: 'call-1',
+        value: {status: 'ok'},
+      },
+    };
+    assert.strictEqual(AgentFunctionResponseMessageSchema.safeParse(agentResp).success, true);
+  });
+
+  it('validates ActionMessage, CallAgentFunctionMessage, and RendererFunctionResponseMessage v1.0', () => {
+    const actionMsg = {
+      version: 'v1.0',
+      action: {
+        name: 'submit',
+        surfaceId: 's1',
+        sourceComponentId: 'btn1',
+        timestamp: '2026-08-13T00:00:00Z',
+        context: {},
+      },
+    };
+    assert.strictEqual(ActionMessageSchema.safeParse(actionMsg).success, true);
+
+    const callAgentMsg = {
+      version: 'v1.0',
+      callAgentFunction: {
+        surfaceId: 's1',
+        functionCallId: 'call-1',
+        callFunction: {call: 'fetchData'},
+      },
+    };
+    assert.strictEqual(CallAgentFunctionMessageSchema.safeParse(callAgentMsg).success, true);
+
+    const rendererResp = {
+      version: 'v1.0',
+      rendererFunctionResponse: {
+        functionCallId: 'call-1',
+        value: {status: 'done'},
+      },
+    };
+    assert.strictEqual(RendererFunctionResponseMessageSchema.safeParse(rendererResp).success, true);
+  });
 });

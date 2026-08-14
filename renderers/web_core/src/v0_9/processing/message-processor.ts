@@ -380,6 +380,8 @@ export class MessageProcessor<T extends ComponentApi> {
       }
     }
 
+    this.validateCompositionConstraints(surface, payload.components);
+
     // 2. Mutation pass: apply state updates
     for (const comp of payload.components) {
       const {id, component, ...properties} = comp;
@@ -433,5 +435,70 @@ export class MessageProcessor<T extends ComponentApi> {
       return `${base}${path}`;
     }
     return `/${path}`;
+  }
+
+  private validateCompositionConstraints(surface: SurfaceModel<T>, newComponents: any[]): void {
+    // 1. Build map of all component types in the surface (combining existing & new)
+    const typeMap = new Map<string, string>();
+    const childMap = new Map<string, string[]>();
+
+    for (const [id, model] of surface.componentsModel.entries) {
+      typeMap.set(id, model.type);
+      if (Array.isArray((model as any).properties?.children)) {
+        childMap.set(id, (model as any).properties.children);
+      }
+    }
+
+    for (const comp of newComponents) {
+      const {id, component, children} = comp;
+      if (id && component) {
+        typeMap.set(id, component);
+      }
+      if (id && Array.isArray(children)) {
+        childMap.set(id, children);
+      }
+    }
+
+    // Build parent map: childId -> { parentId, parentType }
+    const parentMap = new Map<string, {parentId: string; parentType: string}>();
+    for (const [parentId, children] of childMap.entries()) {
+      const parentType = typeMap.get(parentId) || 'Unknown';
+      for (const childId of children) {
+        parentMap.set(childId, {parentId, parentType});
+      }
+    }
+
+    // 2. Validate constraints for each component
+    for (const [id, componentType] of typeMap.entries()) {
+      const componentApi = surface.catalog.components.get(componentType);
+      if (!componentApi) continue;
+
+      // Parent constraint validation
+      if (componentApi.allowedParents && componentApi.allowedParents.length > 0) {
+        const parentInfo = parentMap.get(id);
+        const parentType = id === 'root' && !parentInfo ? 'Surface' : parentInfo?.parentType;
+        const parentId =
+          id === 'root' && !parentInfo ? 'Surface' : parentInfo?.parentId || 'unknown';
+
+        if (!parentType || !componentApi.allowedParents.includes(parentType)) {
+          throw new A2uiValidationError(
+            `Component '${id}' (${componentType}) cannot be placed under parent '${parentId}' (${parentType || 'unknown'}). Allowed parents: ${JSON.stringify(componentApi.allowedParents)}.`,
+          );
+        }
+      }
+
+      // Child constraint validation
+      if (componentApi.allowedChildren && componentApi.allowedChildren.length > 0) {
+        const children = childMap.get(id) || [];
+        for (const childId of children) {
+          const childType = typeMap.get(childId);
+          if (childType && !componentApi.allowedChildren.includes(childType)) {
+            throw new A2uiValidationError(
+              `Container '${id}' (${componentType}) cannot contain child '${childId}' (${childType}). Allowed children: ${JSON.stringify(componentApi.allowedChildren)}.`,
+            );
+          }
+        }
+      }
+    }
   }
 }

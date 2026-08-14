@@ -42,6 +42,8 @@ export interface FunctionApi {
   readonly name: string;
   readonly returnType: A2uiReturnType;
   readonly schema: z.ZodTypeAny;
+  readonly allowedCallers?: Array<'rendererOnly' | 'rendererOrAgent'>;
+  readonly requiresUserActivation?: boolean;
 }
 
 /**
@@ -94,6 +96,12 @@ export interface ComponentApi<Schema extends z.ZodTypeAny = z.ZodTypeAny> {
    * - MUST NOT include 'component' or 'id' as those are handled by the framework/envelope.
    */
   readonly schema: Schema;
+
+  /** Optional allowed parent component types (e.g. ['Column', 'Surface']). */
+  readonly allowedParents?: string[];
+
+  /** Optional allowed child component types (e.g. ['Text', 'Button']). */
+  readonly allowedChildren?: string[];
 }
 
 /**

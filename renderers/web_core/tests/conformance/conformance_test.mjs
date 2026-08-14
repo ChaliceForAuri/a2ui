@@ -222,6 +222,9 @@ async function validateRpcTestCase(testCase) {
           requiresUserActivation: meta.requiresUserActivation,
         },
         () => {
+          if (funcName === 'failingFunction') {
+            throw new Error('An error occurred during function execution.');
+          }
           if (funcName === 'playMedia') return {playing: true, timestamp: 0};
           if (funcName === 'openExternalUrl') return {opened: true};
           if (funcName === 'getUserPermission') return true;

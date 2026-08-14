@@ -146,6 +146,12 @@ class PackSpecsBuildHook(BuildHookInterface):
                 text=True,
             )
             if res.returncode != 0:
+                if os.path.exists(os.path.join(generated_dir, "express_parser.py")):
+                    print(
+                        f"ANTLR parser generation failed ({res.stderr.strip()}), "
+                        "using existing generated parser files."
+                    )
+                    return
                 raise RuntimeError(
                     "ANTLR parser generation failed (exit code"
                     f" {res.returncode}):\n{res.stderr}"

@@ -19,12 +19,14 @@ import * as assert from 'node:assert';
 import {VersionAdapterFactory} from './factory.js';
 
 describe('VersionAdapterFactory', () => {
-  it('resolves v1.0 adapter and extracts inline initial state', () => {
+  it('resolves v1.0 adapter and extracts inline initial state and surface properties', () => {
     const payload = {
       version: 'v1.0',
       createSurface: {
         surfaceId: 's1',
         catalogId: 'basic',
+        theme: {primaryColor: '#00FF00'},
+        sendDataModel: true,
         components: [{id: 'root', component: 'Column'}],
         dataModel: {
           key: 'value',
@@ -35,9 +37,34 @@ describe('VersionAdapterFactory', () => {
     const adapter = VersionAdapterFactory.resolveFromPayload(payload);
     assert.strictEqual(adapter.version, 'v1.0');
 
+    const props = adapter.extractSurfaceProperties(payload);
+    assert.deepStrictEqual(props.theme, {primaryColor: '#00FF00'});
+    assert.strictEqual(props.sendDataModel, true);
+
     const initialState = adapter.extractInitialState(payload);
     assert.deepStrictEqual(initialState.components, [{id: 'root', component: 'Column'}]);
     assert.deepStrictEqual(initialState.dataModel, {key: 'value'});
+  });
+
+  it('handles edge cases in v1.0 adapter extractions', () => {
+    const adapter = VersionAdapterFactory.getAdapter('v1.0');
+
+    const emptyProps = adapter.extractSurfaceProperties({});
+    assert.strictEqual(emptyProps.theme, undefined);
+    assert.strictEqual(emptyProps.sendDataModel, false);
+
+    const emptyState = adapter.extractInitialState({createSurface: {components: 'not-an-array', dataModel: 'not-an-object'}});
+    assert.strictEqual(emptyState.components, undefined);
+    assert.strictEqual(emptyState.dataModel, undefined);
+
+    assert.strictEqual(adapter.extractMessageType({createSurface: {}}), 'createSurface');
+    assert.strictEqual(adapter.extractMessageType({updateComponents: {}}), 'updateComponents');
+    assert.strictEqual(adapter.extractMessageType({updateDataModel: {}}), 'updateDataModel');
+    assert.strictEqual(adapter.extractMessageType({deleteSurface: {}}), 'deleteSurface');
+    assert.strictEqual(adapter.extractMessageType({callRendererFunction: {}}), 'callRendererFunction');
+    assert.strictEqual(adapter.extractMessageType({agentFunctionResponse: {}}), 'agentFunctionResponse');
+    assert.strictEqual(adapter.extractMessageType(null), undefined);
+    assert.strictEqual(adapter.extractMessageType('invalid'), undefined);
   });
 
   it('resolves v0.9 adapter and handles legacy payloads', () => {

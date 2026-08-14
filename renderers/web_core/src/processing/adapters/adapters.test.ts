@@ -58,5 +58,30 @@ describe('VersionAdapterFactory', () => {
 
     const initialState = adapter.extractInitialState(payload);
     assert.strictEqual(initialState.components, undefined);
+    assert.strictEqual(adapter.extractMessageType(payload), 'createSurface');
+  });
+
+  it('resolves v0.8 adapter and extracts message types', () => {
+    const payload = {
+      version: 'v0.8',
+      beginRendering: {
+        surfaceId: 's1',
+        theme: {dark: true},
+      },
+    };
+
+    const adapter = VersionAdapterFactory.resolveFromPayload(payload);
+    assert.strictEqual(adapter.version, 'v0.8');
+
+    const props = adapter.extractSurfaceProperties(payload);
+    assert.deepStrictEqual(props.theme, {dark: true});
+
+    assert.strictEqual(adapter.extractMessageType(payload), 'beginRendering');
+    assert.strictEqual(adapter.extractMessageType({}), undefined);
+  });
+
+  it('falls back to v1.0 adapter for unrecognized version', () => {
+    const adapter = VersionAdapterFactory.getAdapter('v99.0');
+    assert.strictEqual(adapter.version, 'v1.0');
   });
 });

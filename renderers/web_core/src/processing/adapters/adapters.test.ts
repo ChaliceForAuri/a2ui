@@ -53,7 +53,9 @@ describe('VersionAdapterFactory', () => {
     assert.strictEqual(emptyProps.theme, undefined);
     assert.strictEqual(emptyProps.sendDataModel, false);
 
-    const emptyState = adapter.extractInitialState({createSurface: {components: 'not-an-array', dataModel: 'not-an-object'}});
+    const emptyState = adapter.extractInitialState({
+      createSurface: {components: 'not-an-array', dataModel: 'not-an-object'},
+    });
     assert.strictEqual(emptyState.components, undefined);
     assert.strictEqual(emptyState.dataModel, undefined);
 
@@ -61,8 +63,14 @@ describe('VersionAdapterFactory', () => {
     assert.strictEqual(adapter.extractMessageType({updateComponents: {}}), 'updateComponents');
     assert.strictEqual(adapter.extractMessageType({updateDataModel: {}}), 'updateDataModel');
     assert.strictEqual(adapter.extractMessageType({deleteSurface: {}}), 'deleteSurface');
-    assert.strictEqual(adapter.extractMessageType({callRendererFunction: {}}), 'callRendererFunction');
-    assert.strictEqual(adapter.extractMessageType({agentFunctionResponse: {}}), 'agentFunctionResponse');
+    assert.strictEqual(
+      adapter.extractMessageType({callRendererFunction: {}}),
+      'callRendererFunction',
+    );
+    assert.strictEqual(
+      adapter.extractMessageType({agentFunctionResponse: {}}),
+      'agentFunctionResponse',
+    );
     assert.strictEqual(adapter.extractMessageType(null), undefined);
     assert.strictEqual(adapter.extractMessageType('invalid'), undefined);
   });

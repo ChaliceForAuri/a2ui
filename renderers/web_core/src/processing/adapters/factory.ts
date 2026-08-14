@@ -38,8 +38,11 @@ export class VersionAdapterFactory {
     return adapter;
   }
 
-  static resolveFromPayload(payload: any): VersionAdapter {
-    const version = payload?.version;
+  static resolveFromPayload(payload: unknown): VersionAdapter {
+    const version =
+      typeof payload === 'object' && payload !== null && 'version' in payload
+        ? (payload as {version: unknown}).version
+        : undefined;
     if (typeof version === 'string') {
       return this.getAdapter(version);
     }

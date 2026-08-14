@@ -19,23 +19,28 @@ import {InitialState, SurfaceProperties, VersionAdapter} from './base.js';
 export class V1_0VersionAdapter implements VersionAdapter {
   readonly version = 'v1.0';
 
-  extractSurfaceProperties(payload: any): SurfaceProperties {
-    const cs = payload?.createSurface || {};
+  extractSurfaceProperties(payload: unknown): SurfaceProperties {
+    const p = payload as Record<string, Record<string, unknown>> | undefined;
+    const cs = p?.createSurface || {};
     return {
       theme: cs.theme,
-      sendDataModel: cs.sendDataModel ?? false,
+      sendDataModel: Boolean(cs.sendDataModel),
     };
   }
 
-  extractInitialState(payload: any): InitialState {
-    const cs = payload?.createSurface || {};
+  extractInitialState(payload: unknown): InitialState {
+    const p = payload as Record<string, Record<string, unknown>> | undefined;
+    const cs = p?.createSurface || {};
     return {
       components: Array.isArray(cs.components) ? cs.components : undefined,
-      dataModel: cs.dataModel && typeof cs.dataModel === 'object' ? cs.dataModel : undefined,
+      dataModel:
+        cs.dataModel && typeof cs.dataModel === 'object'
+          ? (cs.dataModel as Record<string, unknown>)
+          : undefined,
     };
   }
 
-  extractMessageType(payload: any): string | undefined {
+  extractMessageType(payload: unknown): string | undefined {
     if (!payload || typeof payload !== 'object') return undefined;
     const known = [
       'createSurface',

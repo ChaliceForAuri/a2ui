@@ -19,19 +19,20 @@ import {InitialState, SurfaceProperties, VersionAdapter} from './base.js';
 export class V0_8VersionAdapter implements VersionAdapter {
   readonly version = 'v0.8';
 
-  extractSurfaceProperties(payload: any): SurfaceProperties {
-    const cs = payload?.beginRendering || payload?.createSurface || {};
+  extractSurfaceProperties(payload: unknown): SurfaceProperties {
+    const p = payload as Record<string, Record<string, unknown>> | undefined;
+    const cs = p?.beginRendering || p?.createSurface || {};
     return {
       theme: cs.theme,
-      sendDataModel: cs.sendDataModel ?? false,
+      sendDataModel: Boolean(cs.sendDataModel),
     };
   }
 
-  extractInitialState(_payload: any): InitialState {
+  extractInitialState(_payload: unknown): InitialState {
     return {};
   }
 
-  extractMessageType(payload: any): string | undefined {
+  extractMessageType(payload: unknown): string | undefined {
     if (!payload || typeof payload !== 'object') return undefined;
     const known = [
       'beginRendering',

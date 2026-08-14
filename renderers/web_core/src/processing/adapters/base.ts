@@ -15,13 +15,13 @@
  */
 
 export interface SurfaceProperties {
-  theme?: any;
+  theme?: unknown;
   sendDataModel?: boolean;
 }
 
 export interface InitialState {
-  components?: any[];
-  dataModel?: Record<string, any>;
+  components?: unknown[];
+  dataModel?: Record<string, unknown>;
 }
 
 export interface VersionAdapter {
@@ -30,15 +30,15 @@ export interface VersionAdapter {
   /**
    * Extract surface properties (theme, sendDataModel) from a CreateSurface payload.
    */
-  extractSurfaceProperties(payload: any): SurfaceProperties;
+  extractSurfaceProperties(payload: unknown): SurfaceProperties;
 
   /**
    * Extract initial state (inline components and dataModel) from a CreateSurface payload.
    */
-  extractInitialState(payload: any): InitialState;
+  extractInitialState(payload: unknown): InitialState;
 
   /**
    * Identifies the primary message action type (e.g. 'createSurface', 'updateComponents').
    */
-  extractMessageType(payload: any): string | undefined;
+  extractMessageType(payload: unknown): string | undefined;
 }

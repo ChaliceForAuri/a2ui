@@ -16,8 +16,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import yaml from 'js-yaml';
+import assert from 'node:assert';
+import {z} from 'zod';
 import {MessageProcessor} from '../../dist/src/v0_9/processing/message-processor.js';
 import {BASIC_COMPONENTS} from '../../dist/src/v0_9/basic_catalog/index.js';
+import {RpcHandler} from '../../dist/src/v1_0/rpc/rpc-handler.js';
+import {createFunctionImplementation} from '../../dist/src/v0_9/catalog/types.js';
+import {SurfaceModel} from '../../dist/src/v0_9/state/surface-model.js';
+import {DataContext} from '../../dist/src/v0_9/rendering/data-context.js';
 
 const basicCatalog = {id: 'basic', components: BASIC_COMPONENTS};
 
@@ -67,7 +73,7 @@ function loadYamlFile(filePath) {
   return yaml.load(content);
 }
 
-function runConformanceHarness() {
+async function runConformanceHarness() {
   console.log('=====================================================');
   console.log('A2UI Web Core TypeScript Conformance Test Harness');
   console.log('=====================================================');
@@ -137,7 +143,7 @@ function runConformanceHarness() {
         // Action-specific test execution dispatch
         switch (action) {
           case 'handle_rpc':
-            validateRpcTestCase(testCase);
+            await validateRpcTestCase(testCase);
             break;
           case 'select_catalog':
             validateSelectCatalogTestCase(testCase);
@@ -186,10 +192,89 @@ function runConformanceHarness() {
   }
 }
 
-function validateRpcTestCase(testCase) {
+async function validateRpcTestCase(testCase) {
   const {args, expect} = testCase;
   if (!args) throw new Error('handle_rpc test requires "args" object.');
   if (!expect) throw new Error('handle_rpc test requires "expect" object.');
+
+  const {
+    message,
+    function_metadata,
+    user_activation_present,
+    is_user_activated,
+    outbound_call,
+    inbound_response,
+  } = args;
+  const catalogId =
+    message?.callRendererFunction?.callFunction?.catalogId ||
+    outbound_call?.callFunction?.catalogId ||
+    'media_catalog';
+
+  const functionsMap = new Map();
+  if (function_metadata) {
+    for (const [funcName, meta] of Object.entries(function_metadata)) {
+      const funcImpl = createFunctionImplementation(
+        {
+          name: funcName,
+          returnType: 'any',
+          schema: z.any(),
+          callableFrom: meta.callableFrom,
+          requiresUserActivation: meta.requiresUserActivation,
+        },
+        () => {
+          if (funcName === 'playMedia') return {playing: true, timestamp: 0};
+          if (funcName === 'openExternalUrl') return {opened: true};
+          if (funcName === 'getUserPermission') return true;
+          return null;
+        },
+      );
+      functionsMap.set(funcName, funcImpl);
+    }
+  }
+
+  const catalog = {
+    id: catalogId,
+    components: new Map(),
+    functions: functionsMap,
+    invoker: () => {},
+  };
+
+  if (outbound_call) {
+    let emitted;
+    const handler = new RpcHandler([catalog], msg => {
+      emitted = msg;
+    });
+    const promise = handler.callAgentFunction(
+      outbound_call.surfaceId,
+      outbound_call.functionCallId,
+      outbound_call.callFunction,
+    );
+    if (inbound_response) {
+      handler.handleAgentFunctionResponse(inbound_response);
+    }
+    const result = await promise;
+    if (expect.correlated_call_id) {
+      assert.strictEqual(emitted.callAgentFunction.functionCallId, expect.correlated_call_id);
+    }
+    if (expect.result) {
+      assert.deepStrictEqual(result, expect.result);
+    }
+    return;
+  }
+
+  const handler = new RpcHandler([catalog]);
+  const surface = new SurfaceModel('s1', catalog);
+  const dataContext = new DataContext(surface, '/');
+
+  const response = await handler.handleCallRendererFunction(
+    message,
+    dataContext,
+    user_activation_present ?? is_user_activated ?? false,
+  );
+
+  if (expect.response) {
+    assert.deepStrictEqual(response, expect.response);
+  }
 }
 
 function validateSelectCatalogTestCase(testCase) {

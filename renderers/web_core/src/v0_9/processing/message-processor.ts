@@ -36,6 +36,9 @@ import {A2uiStateError, A2uiValidationError} from '../errors.js';
 import {VersionAdapterFactory} from '../../processing/adapters/factory.js';
 import {AnyComponent} from '../../v1_0/schema/agent-to-renderer.js';
 
+import {RpcHandler, OutboundMessageListener} from '../../v1_0/rpc/rpc-handler.js';
+import {DataContext} from '../rendering/data-context.js';
+
 /**
  * Options for generating client capabilities.
  */
@@ -43,7 +46,7 @@ export interface CapabilitiesOptions {
   /** If true, the full definition of all catalogs will be included. */
   includeInlineCatalogs?: boolean;
   /** The protocol version to generate capabilities for. Defaults to the processor's configured version. */
-  version?: 'v0.9' | 'v0.9.1';
+  version?: 'v0.9' | 'v0.9.1' | 'v1.0';
 }
 
 /**
@@ -51,7 +54,9 @@ export interface CapabilitiesOptions {
  */
 export interface MessageProcessorOptions {
   /** The default protocol version to use for capability generation and data model reporting. Defaults to 'v0.9'. */
-  version?: 'v0.9' | 'v0.9.1';
+  version?: 'v0.9' | 'v0.9.1' | 'v1.0';
+  /** Optional listener for outbound RPC messages. */
+  outboundListener?: OutboundMessageListener;
 }
 
 /**
@@ -99,7 +104,8 @@ export function formatZodIssue(err: z.ZodIssue): string {
  */
 export class MessageProcessor<T extends ComponentApi> {
   readonly model: SurfaceGroupModel<T>;
-  readonly version: 'v0.9' | 'v0.9.1';
+  readonly version: 'v0.9' | 'v0.9.1' | 'v1.0';
+  readonly rpcHandler: RpcHandler<T>;
 
   /**
    * Creates a new message processor.
@@ -115,6 +121,7 @@ export class MessageProcessor<T extends ComponentApi> {
   ) {
     this.model = new SurfaceGroupModel<T>();
     this.version = options?.version ?? 'v0.9';
+    this.rpcHandler = new RpcHandler<T>(this.catalogs, options?.outboundListener);
     if (this.actionHandler) {
       this.model.onAction.subscribe(this.actionHandler);
     }
@@ -237,7 +244,9 @@ export class MessageProcessor<T extends ComponentApi> {
   /**
    * Returns the aggregated data model for all surfaces that have 'sendDataModel' enabled.
    */
-  getClientDataModel(version: 'v0.9' | 'v0.9.1' = this.version): A2uiClientDataModel | undefined {
+  getClientDataModel(
+    version: 'v0.9' | 'v0.9.1' | 'v1.0' = this.version,
+  ): A2uiClientDataModel | undefined {
     const surfaces: Record<string, any> = {};
 
     for (const surface of this.model.surfacesMap.values()) {
@@ -251,7 +260,7 @@ export class MessageProcessor<T extends ComponentApi> {
     }
 
     return {
-      version,
+      version: version as any,
       surfaces,
     };
   }
@@ -313,6 +322,22 @@ export class MessageProcessor<T extends ComponentApi> {
 
     if ('updateDataModel' in message) {
       this.processUpdateDataModelMessage(message);
+      return;
+    }
+
+    if ('callRendererFunction' in (message as any)) {
+      const msg = message as any;
+      const surfaceId = msg.callRendererFunction?.surfaceId;
+      const surface = surfaceId
+        ? this.model.getSurface(surfaceId)
+        : Array.from(this.model.surfacesMap.values())[0];
+      const dataContext = surface ? new DataContext(surface, '/') : ({} as any);
+      this.rpcHandler.handleCallRendererFunction(msg, dataContext);
+      return;
+    }
+
+    if ('agentFunctionResponse' in (message as any)) {
+      this.rpcHandler.handleAgentFunctionResponse(message as any);
       return;
     }
   }

@@ -44,6 +44,7 @@ import {
   FormatDateApi,
   PluralizeApi,
   OpenUrlApi,
+  IndexApi,
 } from './basic_functions_api.js';
 import {A2uiExpressionError} from '../../errors.js';
 
@@ -446,6 +447,23 @@ export const OpenUrlImplementation = createFunctionImplementation(OpenUrlApi, ar
 });
 
 /**
+ * Implementation of the @index function.
+ * Evaluates the current 0-based array index in repeating template lists.
+ */
+export const IndexImplementation = createFunctionImplementation(IndexApi, (args, context) => {
+  const segments = context.path.split('/').filter(Boolean);
+  let idx = 0;
+  for (let i = segments.length - 1; i >= 0; i--) {
+    const parsed = parseInt(segments[i], 10);
+    if (!isNaN(parsed)) {
+      idx = parsed;
+      break;
+    }
+  }
+  return idx + (args.offset ?? 0);
+});
+
+/**
  * Creates standard function implementations for the Basic Catalog.
  *
  * @param options Configuration options.
@@ -479,6 +497,7 @@ export function createBasicCatalogFunctions(options?: {locale?: string}): Functi
     FormatDateImplementation,
     createPluralizeImplementation(locale),
     OpenUrlImplementation,
+    IndexImplementation,
   ];
 }
 

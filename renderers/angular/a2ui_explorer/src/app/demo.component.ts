@@ -22,6 +22,8 @@ import {
   OnDestroy,
   effect,
   signal,
+  HostListener,
+  ElementRef,
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {
@@ -61,15 +63,36 @@ function getUseUniversalComponents(): boolean {
   template: `
     <div class="dashboard">
       <!-- Sidebar Navigation -->
-      <div class="sidebar">
+      <div class="sidebar" [class.collapsed]="isLeftSidebarCollapsed">
         <div class="sidebar-header">
           <h3>A2UI Examples</h3>
-          <div class="version-selector">
-            <label for="version">Version:</label>
-            <select id="version" (change)="onVersionChange($event)">
-              <option [value]="Version.V0_9" [selected]="version === Version.V0_9">0.9</option>
-              <option [value]="Version.V0_8" [selected]="version === Version.V0_8">0.8</option>
-            </select>
+          <div class="header-actions">
+            <div class="version-selector">
+              <label for="version">Ver:</label>
+              <select id="version" (change)="onVersionChange($event)">
+                <option [value]="Version.V0_9" [selected]="version === Version.V0_9">0.9</option>
+                <option [value]="Version.V0_8" [selected]="version === Version.V0_8">0.8</option>
+              </select>
+            </div>
+            <button
+              class="icon-btn collapse-left-btn"
+              (click)="toggleLeftSidebar()"
+              title="Collapse sidebar"
+              aria-label="Collapse sidebar"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
           </div>
         </div>
         <ul class="example-list">
@@ -86,9 +109,55 @@ function getUseUniversalComponents(): boolean {
 
       <!-- Main Canvas Area -->
       <div class="canvas-area">
-        <div class="canvas-header" *ngIf="selectedExample">
-          <h2>{{ selectedExample.name }}</h2>
-          <p class="subtitle">{{ selectedExample.description }}</p>
+        <div class="canvas-header">
+          <div class="canvas-header-left">
+            <button
+              *ngIf="isLeftSidebarCollapsed"
+              class="icon-btn expand-left-btn"
+              (click)="toggleLeftSidebar()"
+              title="Expand sidebar"
+              aria-label="Expand sidebar"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+            <div *ngIf="selectedExample" class="title-details">
+              <h2>{{ selectedExample.name }}</h2>
+              <p class="subtitle">{{ selectedExample.description }}</p>
+            </div>
+          </div>
+          <div class="canvas-header-right">
+            <button
+              *ngIf="isRightSidebarCollapsed"
+              class="icon-btn expand-right-btn"
+              (click)="toggleRightSidebar()"
+              title="Expand inspector"
+              aria-label="Expand inspector"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+          </div>
         </div>
         <div class="canvas-frame">
           <div
@@ -109,7 +178,29 @@ function getUseUniversalComponents(): boolean {
       </div>
 
       <!-- Inspect Panel -->
-      <div class="inspect-area">
+      <div class="inspect-area" [class.collapsed]="isRightSidebarCollapsed">
+        <div class="inspect-header">
+          <h4>Inspector</h4>
+          <button
+            class="icon-btn collapse-right-btn"
+            (click)="toggleRightSidebar()"
+            title="Collapse inspector"
+            aria-label="Collapse inspector"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
         <div class="inspect-section surface-section" [class.folded]="isSurfaceMessageFolded">
           <div
             class="section-header"
@@ -266,16 +357,27 @@ function getUseUniversalComponents(): boolean {
       /* Sidebar */
       .sidebar {
         width: 260px;
+        min-width: 260px;
         background-color: #1e1e1e;
         border-right: 1px solid #333;
         display: flex;
         flex-direction: column;
+        transition:
+          width 0.2s ease,
+          min-width 0.2s ease;
+      }
+      .sidebar.collapsed {
+        width: 0;
+        min-width: 0;
+        border-right: none;
+        overflow: hidden;
+        display: none;
       }
       .sidebar-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0 16px;
+        padding: 0 12px 0 16px;
         height: 56px;
         border-bottom: 1px solid #334155;
         background-color: #1e293b;
@@ -285,10 +387,15 @@ function getUseUniversalComponents(): boolean {
         color: #4dabf7;
         font-size: 1rem;
       }
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
       .version-selector {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 4px;
       }
       .version-selector label {
         font-size: 0.75rem;
@@ -299,7 +406,7 @@ function getUseUniversalComponents(): boolean {
         color: #f8fafc;
         border: 1px solid #334155;
         border-radius: 4px;
-        padding: 2px 6px;
+        padding: 2px 4px;
         font-size: 0.75rem;
         cursor: pointer;
         outline: none;
@@ -307,6 +414,30 @@ function getUseUniversalComponents(): boolean {
       }
       .version-selector select:focus {
         border-color: #3b82f6;
+      }
+      .icon-btn {
+        background: transparent;
+        border: 1px solid #334155;
+        border-radius: 4px;
+        color: #94a3b8;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+        line-height: 1;
+        transition: all 0.2s;
+      }
+      .icon-btn:hover {
+        background-color: #334155;
+        color: #f8fafc;
+        border-color: #475569;
+      }
+      .icon-btn svg {
+        display: block;
+      }
+      .expand-btn {
+        padding: 6px;
       }
       .example-list {
         list-style: none;
@@ -350,12 +481,22 @@ function getUseUniversalComponents(): boolean {
       }
       .canvas-header {
         display: flex;
-        flex-direction: column;
-        justify-content: center;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
         padding: 0 16px;
         height: 56px;
         background-color: #1e293b;
         border-bottom: 1px solid #334155;
+      }
+      .canvas-header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .canvas-header-right {
+        display: flex;
+        align-items: center;
       }
       .canvas-header h2 {
         margin: 0;
@@ -398,12 +539,38 @@ function getUseUniversalComponents(): boolean {
       /* Inspect Panel */
       .inspect-area {
         width: 380px;
+        min-width: 380px;
         background-color: #0f172a;
         border-left: 1px solid #1e293b;
         display: flex;
         flex-direction: column;
         height: 100%;
         overflow: hidden;
+        transition:
+          width 0.2s ease,
+          min-width 0.2s ease;
+      }
+      .inspect-area.collapsed {
+        width: 0;
+        min-width: 0;
+        border-left: none;
+        overflow: hidden;
+        display: none;
+      }
+      .inspect-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 12px 0 16px;
+        height: 56px;
+        background-color: #1e293b;
+        border-bottom: 1px solid #334155;
+      }
+      .inspect-header h4 {
+        margin: 0;
+        font-size: 1rem;
+        color: #f8fafc;
+        font-weight: 500;
       }
       .inspect-section {
         flex: 0 1 auto;
@@ -637,31 +804,111 @@ export class DemoComponent implements OnInit, OnDestroy {
     });
   }
 
+  private readonly elementRef = inject(ElementRef);
+
   isDataModelFolded = false;
   isSurfaceMessageFolded = false;
   isEventsLogFolded = false;
+  isLeftSidebarCollapsed = false;
+  isRightSidebarCollapsed = false;
+
+  private getLocalStorage(key: string): string | null {
+    try {
+      return typeof window !== 'undefined' ? localStorage.getItem(key) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private setLocalStorage(key: string, value: string) {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(key, value);
+      }
+    } catch {
+      // Ignore localStorage errors in restricted environments
+    }
+  }
+
+  toggleLeftSidebar() {
+    this.isLeftSidebarCollapsed = !this.isLeftSidebarCollapsed;
+    this.setLocalStorage('isLeftSidebarCollapsed', String(this.isLeftSidebarCollapsed));
+  }
+
+  toggleRightSidebar() {
+    this.isRightSidebarCollapsed = !this.isRightSidebarCollapsed;
+    this.setLocalStorage('isRightSidebarCollapsed', String(this.isRightSidebarCollapsed));
+  }
 
   toggleDataModel() {
     this.isDataModelFolded = !this.isDataModelFolded;
-    localStorage.setItem('isDataModelFolded', String(this.isDataModelFolded));
+    this.setLocalStorage('isDataModelFolded', String(this.isDataModelFolded));
   }
 
   toggleSurfaceMessage() {
     this.isSurfaceMessageFolded = !this.isSurfaceMessageFolded;
-    localStorage.setItem('isSurfaceMessageFolded', String(this.isSurfaceMessageFolded));
+    this.setLocalStorage('isSurfaceMessageFolded', String(this.isSurfaceMessageFolded));
   }
 
   toggleEventsLog() {
     this.isEventsLogFolded = !this.isEventsLogFolded;
-    localStorage.setItem('isEventsLogFolded', String(this.isEventsLogFolded));
+    this.setLocalStorage('isEventsLogFolded', String(this.isEventsLogFolded));
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    const activeEl =
+      typeof document !== 'undefined' ? (document.activeElement as HTMLElement | null) : null;
+    const targetEl = event.target as HTMLElement | null;
+    const focusedEl = (activeEl && activeEl.isConnected ? activeEl : null) || targetEl;
+
+    if (
+      focusedEl &&
+      (focusedEl.tagName === 'INPUT' ||
+        focusedEl.tagName === 'TEXTAREA' ||
+        focusedEl.tagName === 'SELECT' ||
+        focusedEl.isContentEditable)
+    ) {
+      return;
+    }
+
+    if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) {
+      return;
+    }
+
+    if (event.key === 'j') {
+      this.selectNextExample();
+      event.preventDefault();
+    } else if (event.key === 'k') {
+      this.selectPrevExample();
+      event.preventDefault();
+    }
+  }
+
+  selectNextExample() {
+    if (!this.examples || this.examples.length === 0) return;
+    const currentIndex = this.selectedExample
+      ? this.examples.findIndex(ex => ex === this.selectedExample)
+      : -1;
+    const nextIndex = currentIndex < this.examples.length - 1 ? currentIndex + 1 : 0;
+    this.selectExample(this.examples[nextIndex]);
+  }
+
+  selectPrevExample() {
+    if (!this.examples || this.examples.length === 0) return;
+    const currentIndex = this.selectedExample
+      ? this.examples.findIndex(ex => ex === this.selectedExample)
+      : -1;
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : this.examples.length - 1;
+    this.selectExample(this.examples[prevIndex]);
   }
 
   ngOnInit(): void {
-    if (typeof window !== 'undefined') {
-      this.isDataModelFolded = localStorage.getItem('isDataModelFolded') === 'true';
-      this.isSurfaceMessageFolded = localStorage.getItem('isSurfaceMessageFolded') === 'true';
-      this.isEventsLogFolded = localStorage.getItem('isEventsLogFolded') === 'true';
-    }
+    this.isDataModelFolded = this.getLocalStorage('isDataModelFolded') === 'true';
+    this.isSurfaceMessageFolded = this.getLocalStorage('isSurfaceMessageFolded') === 'true';
+    this.isEventsLogFolded = this.getLocalStorage('isEventsLogFolded') === 'true';
+    this.isLeftSidebarCollapsed = this.getLocalStorage('isLeftSidebarCollapsed') === 'true';
+    this.isRightSidebarCollapsed = this.getLocalStorage('isRightSidebarCollapsed') === 'true';
     this.selectExampleFromUrl();
   }
 
@@ -680,10 +927,22 @@ export class DemoComponent implements OnInit, OnDestroy {
 
   selectExample(example: A2uiExample) {
     this.selectedExample = example;
-    window.location.hash = this.slugify(example.name);
+    if (typeof window !== 'undefined') {
+      window.location.hash = this.slugify(example.name);
+    }
 
     this.agentStub.initializeDemo(example.messages);
     this.cdr.detectChanges();
+    this.scrollToActiveExample();
+  }
+
+  private scrollToActiveExample() {
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        const activeEl = this.elementRef.nativeElement.querySelector('.example-list li.active');
+        activeEl?.scrollIntoView({block: 'nearest', behavior: 'smooth'});
+      }, 0);
+    }
   }
 
   /** Gets a display string for the action type. */

@@ -442,20 +442,44 @@ export class MessageProcessor<T extends ComponentApi> {
     const typeMap = new Map<string, string>();
     const childMap = new Map<string, string[]>();
 
+    const addChildren = (parentId: string, childVal: any) => {
+      if (!childVal) return;
+      let list = childMap.get(parentId);
+      if (!list) {
+        list = [];
+        childMap.set(parentId, list);
+      }
+
+      if (typeof childVal === 'string') {
+        list.push(childVal);
+      } else if (Array.isArray(childVal)) {
+        for (const item of childVal) {
+          if (typeof item === 'string') {
+            list.push(item);
+          } else if (item && typeof item === 'object' && typeof item.componentId === 'string') {
+            list.push(item.componentId);
+          }
+        }
+      } else if (typeof childVal === 'object' && typeof childVal.componentId === 'string') {
+        list.push(childVal.componentId);
+      }
+    };
+
     for (const [id, model] of surface.componentsModel.entries) {
       typeMap.set(id, model.type);
-      if (Array.isArray((model as any).properties?.children)) {
-        childMap.set(id, (model as any).properties.children);
-      }
+      const props = (model as any).properties || {};
+      if (props.children) addChildren(id, props.children);
+      if (props.child) addChildren(id, props.child);
     }
 
     for (const comp of newComponents) {
-      const {id, component, children} = comp;
+      const {id, component, ...props} = comp;
       if (id && component) {
         typeMap.set(id, component);
       }
-      if (id && Array.isArray(children)) {
-        childMap.set(id, children);
+      if (id) {
+        if (props.children) addChildren(id, props.children);
+        if (props.child) addChildren(id, props.child);
       }
     }
 
@@ -476,9 +500,9 @@ export class MessageProcessor<T extends ComponentApi> {
       // Parent constraint validation
       if (componentApi.allowedParents && componentApi.allowedParents.length > 0) {
         const parentInfo = parentMap.get(id);
-        const parentType = id === 'root' && !parentInfo ? 'Surface' : parentInfo?.parentType;
-        const parentId =
-          id === 'root' && !parentInfo ? 'Surface' : parentInfo?.parentId || 'unknown';
+        const isRoot = !parentInfo;
+        const parentType = isRoot ? 'Surface' : parentInfo.parentType;
+        const parentId = isRoot ? 'Surface' : parentInfo.parentId;
 
         if (!parentType || !componentApi.allowedParents.includes(parentType)) {
           throw new A2uiValidationError(

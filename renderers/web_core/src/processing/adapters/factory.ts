@@ -15,11 +15,13 @@
  */
 
 import {VersionAdapter} from './base.js';
+import {V0_8VersionAdapter} from './v0_8.js';
 import {V0_9VersionAdapter} from './v0_9.js';
 import {V1_0VersionAdapter} from './v1_0.js';
 
 export class VersionAdapterFactory {
   private static adapters = new Map<string, VersionAdapter>([
+    ['v0.8', new V0_8VersionAdapter()],
     ['v0.9', new V0_9VersionAdapter()],
     ['v0.9.1', new V0_9VersionAdapter()],
     ['v1.0', new V1_0VersionAdapter()],

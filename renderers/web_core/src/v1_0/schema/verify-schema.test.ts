@@ -128,4 +128,47 @@ describe('A2UI Schema Verification v1.0', () => {
     const result = RendererToAgentMessageSchema.safeParse(valid);
     assert.strictEqual(result.success, true);
   });
+
+  it('rejects component: Surface in AnyComponentSchema', () => {
+    const invalid = {
+      id: 's1',
+      component: 'Surface',
+    };
+    const result = AgentToRendererMessageSchema.safeParse({
+      version: 'v1.0',
+      updateComponents: {
+        surfaceId: 's1',
+        components: [invalid],
+      },
+    });
+    assert.strictEqual(result.success, false);
+  });
+
+  it('rejects CallRendererFunctionMessage missing catalogId', () => {
+    const invalid = {
+      version: 'v1.0',
+      callRendererFunction: {
+        functionCallId: 'call-1',
+        callFunction: {
+          call: 'playMedia',
+        },
+      },
+    };
+    const result = CallRendererFunctionMessageSchema.safeParse(invalid);
+    assert.strictEqual(result.success, false);
+  });
+
+  it('rejects generic ErrorMessage with both surfaceId and functionCallId', () => {
+    const invalid = {
+      version: 'v1.0',
+      error: {
+        code: 'GENERIC_ERROR',
+        message: 'Something went wrong',
+        surfaceId: 's1',
+        functionCallId: 'call-1',
+      },
+    };
+    const result = ErrorMessageSchema.safeParse(invalid);
+    assert.strictEqual(result.success, false);
+  });
 });

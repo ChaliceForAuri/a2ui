@@ -116,6 +116,11 @@ export class DataModel {
     const segments = this.parsePath(path);
     const lastSegment = segments.pop()!;
 
+    if ((value === undefined || value === null) && this.get(path) === undefined) {
+      this.notifySignals(path);
+      return this;
+    }
+
     if (!this.data) {
       this.data = {};
     }

@@ -42,7 +42,7 @@ export interface FunctionApi {
   readonly name: string;
   readonly returnType: A2uiReturnType;
   readonly schema: z.ZodTypeAny;
-  readonly allowedCallers?: Array<'rendererOnly' | 'rendererOrAgent'>;
+  readonly allowedCallers?: Array<'rendererOnly' | 'agentOnly' | 'rendererOrAgent'>;
   readonly requiresUserActivation?: boolean;
 }
 

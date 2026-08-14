@@ -736,6 +736,7 @@ describe('MessageProcessor', () => {
     assert.strictEqual(processor.resolvePath('foo'), '/foo');
   });
 
+<<<<<<< HEAD
   describe('formatZodIssue and error reporting', () => {
     it('formats unrecognized keys with exact property names', () => {
       const issue: any = {
@@ -832,6 +833,110 @@ describe('MessageProcessor', () => {
           return true;
         },
       );
+    });
+  });
+
+  describe('Composition Constraints Validation', () => {
+    it('validates allowedParents for root surface container and nested components', () => {
+      const customCatalog: Catalog<any> = {
+        id: 'constrained-catalog',
+        components: new Map([
+          [
+            'Column',
+            {
+              name: 'Column',
+              schema: z.object({children: z.any()}),
+              allowedParents: ['Surface', 'Row'],
+            },
+          ],
+          [
+            'Header',
+            {name: 'Header', schema: z.object({text: z.string()}), allowedParents: ['Column']},
+          ],
+        ]),
+        functions: new Map(),
+        invoker: () => undefined,
+      };
+
+      const customProcessor = new MessageProcessor([customCatalog]);
+      customProcessor.processMessages([
+        {
+          version: 'v1.0',
+          createSurface: {surfaceId: 's1', catalogId: 'constrained-catalog'},
+        } as any,
+      ]);
+
+      // Valid structure: Column (root) -> Header
+      assert.doesNotThrow(() => {
+        customProcessor.processMessages([
+          {
+            version: 'v1.0',
+            updateComponents: {
+              surfaceId: 's1',
+              components: [
+                {id: 'c1', component: 'Column', children: ['h1']},
+                {id: 'h1', component: 'Header', text: 'Title'},
+              ],
+            },
+          } as any,
+        ]);
+      });
+
+      // Invalid structure: Header (root) - Header allowedParents is ['Column'], not 'Surface'
+      assert.throws(() => {
+        customProcessor.processMessages([
+          {
+            version: 'v1.0',
+            updateComponents: {
+              surfaceId: 's1',
+              components: [{id: 'h2', component: 'Header', text: 'Orphan Header'}],
+            },
+          } as any,
+        ]);
+      }, /cannot be placed under parent 'Surface'/);
+    });
+
+    it('validates allowedChildren for container components', () => {
+      const customCatalog: Catalog<any> = {
+        id: 'children-catalog',
+        components: new Map([
+          [
+            'RestrictedBox',
+            {
+              name: 'RestrictedBox',
+              schema: z.object({children: z.any()}),
+              allowedChildren: ['Text'],
+            },
+          ],
+          ['Text', {name: 'Text', schema: z.object({text: z.string()})}],
+          ['Video', {name: 'Video', schema: z.object({url: z.string()})}],
+        ]),
+        functions: new Map(),
+        invoker: () => undefined,
+      };
+
+      const customProcessor = new MessageProcessor([customCatalog]);
+      customProcessor.processMessages([
+        {
+          version: 'v1.0',
+          createSurface: {surfaceId: 's1', catalogId: 'children-catalog'},
+        } as any,
+      ]);
+
+      assert.throws(() => {
+        customProcessor.processMessages([
+          {
+            version: 'v1.0',
+            updateComponents: {
+              surfaceId: 's1',
+              components: [
+                {id: 'box1', component: 'RestrictedBox', children: ['v1']},
+                {id: 'v1', component: 'Video', url: 'video.mp4'},
+              ],
+            },
+          } as any,
+        ]);
+      }, /cannot contain child 'v1' \(Video\)/);
     });
   });
 });

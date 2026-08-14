@@ -34,16 +34,12 @@ export const DataBindingSchema = z
   .strict();
 export type DataBinding = z.infer<typeof DataBindingSchema>;
 
-export const FunctionCallSchema = z.lazy(() =>
-  z.object({
-    call: z.string().describe('The name of the function to call.'),
-    catalogId: z.string().optional().describe('Catalog ID overriding surface default.'),
-    args: z.record(z.string(), z.any()).optional().describe('Arguments passed to the function.'),
-    returnType: z
-      .enum(['string', 'number', 'boolean', 'array', 'object', 'any', 'void'])
-      .optional(),
-  }),
-);
+export const FunctionCallSchema = z.object({
+  call: z.string().describe('The name of the function to call.'),
+  catalogId: z.string().optional().describe('Catalog ID overriding surface default.'),
+  args: z.record(z.string(), z.any()).optional().describe('Arguments passed to the function.'),
+  returnType: z.enum(['string', 'number', 'boolean', 'array', 'object', 'any', 'void']).optional(),
+});
 export type FunctionCall = z.infer<typeof FunctionCallSchema>;
 
 export const DynamicValueSchema = z.lazy(() =>
@@ -159,5 +155,8 @@ export const FunctionResponseSchema = z
       .strict()
       .optional(),
   })
-  .strict();
+  .strict()
+  .refine(data => (data.value !== undefined) !== (data.error !== undefined), {
+    message: 'FunctionResponse must contain either value or error, but not both or neither.',
+  });
 export type FunctionResponse = z.infer<typeof FunctionResponseSchema>;

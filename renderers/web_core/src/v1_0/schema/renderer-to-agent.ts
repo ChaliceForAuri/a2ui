@@ -81,7 +81,11 @@ export const ErrorMessageSchema = z
           surfaceId: z.string().optional(),
           functionCallId: z.string().optional(),
         })
-        .passthrough(),
+        .passthrough()
+        .refine(data => (data.surfaceId !== undefined) !== (data.functionCallId !== undefined), {
+          message:
+            'Generic error must specify either surfaceId or functionCallId, but not both or neither.',
+        }),
     ]),
   })
   .strict();

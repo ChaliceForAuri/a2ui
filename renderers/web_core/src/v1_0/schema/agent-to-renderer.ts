@@ -22,7 +22,10 @@ import {
   FunctionResponseSchema,
 } from './common-types.js';
 
-export const AnyComponentSchema = ComponentCommonSchema.passthrough();
+export const AnyComponentSchema = ComponentCommonSchema.passthrough().refine(
+  comp => (comp as any).component !== 'Surface',
+  {message: 'Component type cannot be "Surface".'},
+);
 export type AnyComponent = z.infer<typeof AnyComponentSchema>;
 
 export const ComponentsListSchema = z.array(AnyComponentSchema).min(1);
@@ -95,7 +98,9 @@ export const CallRendererFunctionMessageSchema = z
     callRendererFunction: z
       .object({
         functionCallId: z.string(),
-        callFunction: FunctionCallSchema,
+        callFunction: FunctionCallSchema.extend({
+          catalogId: z.string(),
+        }),
       })
       .strict(),
   })

@@ -1,5 +1,9 @@
 ## Unreleased
 
+- (v0_9) Add support for universal W3C Custom Element components alongside native React components via `NativeBasicCatalog`, `UniversalBasicCatalog`, and `BasicCatalog`, configurable with `useUniversalComponents` (default: `false`).
+- (v0_9) Introduce `toWebComponent` adapter to convert React components into W3C Custom Elements.
+- (v0_9) Add `A2UIProvider` and `useA2UI` context hook for global renderer configuration.
+
 ## 0.10.2
 
 - (v0_9) Normalize Safari placeholder text color for `DateTimeInput` by injecting WebKit-specific styles via a global stylesheet and adding the `.a2ui-date-time-input` class.

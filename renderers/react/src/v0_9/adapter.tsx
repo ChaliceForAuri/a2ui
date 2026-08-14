@@ -15,14 +15,21 @@
  */
 
 import React, {useRef, useSyncExternalStore, useCallback, memo, useEffect} from 'react';
-import {type ComponentContext, GenericBinder} from '@a2ui/web_core/v0_9';
+import {
+  type ComponentContext,
+  GenericBinder,
+  type WebComponentImplementation,
+} from '@a2ui/web_core/v0_9';
 import type {
   ComponentApi,
   InferredComponentApiSchemaType,
   ResolveA2uiProps,
 } from '@a2ui/web_core/v0_9';
+import type {ZodTypeAny} from 'zod';
 
-export interface ReactComponentImplementation extends ComponentApi {
+export interface ReactComponentImplementation<
+  Schema extends ZodTypeAny = ZodTypeAny,
+> extends ComponentApi<Schema> {
   /** The framework-specific rendering wrapper. */
   render: React.FC<{
     context: ComponentContext;
@@ -30,11 +37,20 @@ export interface ReactComponentImplementation extends ComponentApi {
   }>;
 }
 
+/**
+ * Union type representing any component usable in the React A2UI catalog (native React or universal Web Component).
+ */
+export type ReactCatalogComponent<Schema extends ZodTypeAny = ZodTypeAny> =
+  | ReactComponentImplementation<Schema>
+  | WebComponentImplementation<Schema>;
+
 export type ReactA2uiComponentProps<T> = {
   props: T;
   buildChild: (id: string, basePath?: string) => React.ReactNode;
   context: ComponentContext;
 };
+
+export * from './catalog/to_web_component';
 
 // --- Component Factories ---
 

@@ -16,6 +16,7 @@
 
 export * from './A2uiSurface';
 export * from './adapter';
+export * from './core/A2UIProvider';
 
 // Export basic catalog components directly for 3P developers
 export * from './catalog/basic';

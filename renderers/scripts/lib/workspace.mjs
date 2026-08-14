@@ -40,15 +40,18 @@ export function findPackages(dir = ROOT_DIR, packageList = []) {
   const files = readdirSync(dir);
 
   for (const file of files) {
-    if (file === 'node_modules' || file === '.git' || file === 'dist') continue;
+    if (file === 'node_modules' || file.startsWith('.') || file === 'dist' || file === 'build') continue;
 
     const fullPath = join(dir, file);
-    const stat = statSync(fullPath);
-
-    if (stat.isDirectory()) {
-      findPackages(fullPath, packageList);
-    } else if (file === 'package.json') {
-      packageList.push(fullPath);
+    try {
+      const stat = statSync(fullPath);
+      if (stat.isDirectory()) {
+        findPackages(fullPath, packageList);
+      } else if (file === 'package.json') {
+        packageList.push(fullPath);
+      }
+    } catch {
+      // Ignore inaccessible paths or broken symlinks
     }
   }
 
@@ -64,6 +67,7 @@ export function getPackageGraph() {
 
   for (const path of packagePaths) {
     const pkg = JSON.parse(readFileSync(path, 'utf8'));
+    if (!pkg || !pkg.name) continue;
     const dir = dirname(path);
 
     // If we have a duplicate name, prioritize packages in 'renderers/'

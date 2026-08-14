@@ -19,10 +19,48 @@ import {directive, DirectiveParameters, Part} from 'lit/directive.js';
 import {AsyncDirective} from 'lit/async-directive.js';
 import * as Types from '../../../v0_8/types/types.js';
 
+let defaultMarkdownRenderer:
+  | ((text: string, options?: Types.MarkdownRendererOptions) => Promise<string>)
+  | null
+  | undefined;
+
+let defaultMarkdownRendererPromise:
+  | Promise<((text: string, options?: Types.MarkdownRendererOptions) => Promise<string>) | null>
+  | undefined;
+
+async function getDefaultMarkdownRenderer(): Promise<
+  ((text: string, options?: Types.MarkdownRendererOptions) => Promise<string>) | null
+> {
+  if (defaultMarkdownRenderer !== undefined) {
+    return defaultMarkdownRenderer;
+  }
+  if (!defaultMarkdownRendererPromise) {
+    defaultMarkdownRendererPromise = (async () => {
+      try {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore - optional peer dependency
+        const mod = await import('@a2ui/markdown-it');
+        const renderer =
+          mod.renderMarkdown ||
+          (mod as any).default?.renderMarkdown ||
+          (mod as any).default ||
+          null;
+        defaultMarkdownRenderer = renderer;
+        return renderer;
+      } catch {
+        defaultMarkdownRenderer = null;
+        return null;
+      }
+    })();
+  }
+  return defaultMarkdownRendererPromise;
+}
+
 class MarkdownDirective extends AsyncDirective {
   private lastValue: string | null = null;
   private lastRenderer: Types.MarkdownRenderer | undefined = undefined;
   private lastTagClassMap: string | null = null;
+  private renderId = 0;
 
   override update(
     _part: Part,
@@ -43,39 +81,55 @@ class MarkdownDirective extends AsyncDirective {
     return this.render(value, markdownRenderer, markdownOptions);
   }
 
-  private static defaultMarkdownWarningLogged = false;
-
   render(
     value: string,
     markdownRenderer?: Types.MarkdownRenderer,
     markdownOptions?: Types.MarkdownRendererOptions,
   ) {
-    if (markdownRenderer) {
-      const renderFn =
-        typeof markdownRenderer === 'function'
-          ? markdownRenderer
-          : (markdownRenderer as any)?.['render']?.bind(markdownRenderer);
-      if (renderFn) {
-        Promise.resolve(renderFn(value, markdownOptions)).then((renderedStr: string) => {
-          if (this.isConnected) {
-            if (typeof document !== 'undefined') {
-              const fragment = document.createRange().createContextualFragment(renderedStr);
-              this.setValue(fragment);
-            }
-          }
-        });
-        return html`<span class="no-markdown-renderer">${value}</span>`;
-      }
+    const renderId = ++this.renderId;
+
+    const renderFn =
+      typeof markdownRenderer === 'function'
+        ? markdownRenderer
+        : (markdownRenderer as any)?.['render']?.bind(markdownRenderer);
+
+    if (renderFn) {
+      Promise.resolve(renderFn(value, markdownOptions)).then((renderedStr: string) => {
+        if (renderId !== this.renderId || !this.isConnected) return;
+        if (typeof document !== 'undefined') {
+          const fragment = document.createRange().createContextualFragment(renderedStr);
+          this.setValue(fragment);
+        }
+      });
+      return html`<span class="no-markdown-renderer">${value}</span>`;
     }
 
-    if (!MarkdownDirective.defaultMarkdownWarningLogged) {
-      console.warn(
-        '[MarkdownDirective]',
-        "can't render markdown because no markdown renderer is configured.\n",
-        'Use `@a2ui/markdown-it`, or your own markdown renderer.',
-      );
-      MarkdownDirective.defaultMarkdownWarningLogged = true;
+    if (defaultMarkdownRenderer !== undefined) {
+      if (defaultMarkdownRenderer !== null) {
+        defaultMarkdownRenderer(value, markdownOptions).then((renderedStr: string) => {
+          if (renderId !== this.renderId || !this.isConnected) return;
+          if (typeof document !== 'undefined') {
+            const fragment = document.createRange().createContextualFragment(renderedStr);
+            this.setValue(fragment);
+          }
+        });
+      }
+      return html`<span class="no-markdown-renderer">${value}</span>`;
     }
+
+    getDefaultMarkdownRenderer().then(defaultRenderer => {
+      if (renderId !== this.renderId || !this.isConnected) return;
+      if (defaultRenderer) {
+        defaultRenderer(value, markdownOptions).then((renderedStr: string) => {
+          if (renderId !== this.renderId || !this.isConnected) return;
+          if (typeof document !== 'undefined') {
+            const fragment = document.createRange().createContextualFragment(renderedStr);
+            this.setValue(fragment);
+          }
+        });
+      }
+    });
+
     return html`<span class="no-markdown-renderer">${value}</span>`;
   }
 }

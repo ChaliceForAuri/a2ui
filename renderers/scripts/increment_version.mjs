@@ -71,7 +71,9 @@ const graph = getPackageGraph();
 // Find package by name or suffix (e.g. 'lit' matches '@a2ui/lit')
 let pkg = graph[targetName];
 if (!pkg) {
-  pkg = Object.values(graph).find(p => p.name.endsWith('/' + targetName) || p.name === targetName);
+  pkg = Object.values(graph).find(
+    p => p.name && (p.name.endsWith('/' + targetName) || p.name === targetName),
+  );
 }
 
 if (!pkg) {

@@ -100,7 +100,7 @@ describe('Text Component', () => {
       e.context = context;
     });
 
-    const span = el.querySelector('.no-markdown-renderer');
+    const span = el.querySelector('.a2ui-text');
     assert.ok(span);
     assert.strictEqual(span.textContent?.trim(), 'Hello static text');
   });
@@ -115,7 +115,7 @@ describe('Text Component', () => {
       e.context = context;
     });
 
-    const span = el.querySelector('.no-markdown-renderer');
+    const span = el.querySelector('.a2ui-text');
     assert.ok(span);
     assert.strictEqual(span.textContent?.trim(), 'Hello dynamic text');
 

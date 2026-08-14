@@ -736,7 +736,6 @@ describe('MessageProcessor', () => {
     assert.strictEqual(processor.resolvePath('foo'), '/foo');
   });
 
-<<<<<<< HEAD
   describe('formatZodIssue and error reporting', () => {
     it('formats unrecognized keys with exact property names', () => {
       const issue: any = {

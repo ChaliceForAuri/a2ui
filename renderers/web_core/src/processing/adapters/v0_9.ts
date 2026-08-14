@@ -34,6 +34,6 @@ export class V0_9VersionAdapter implements VersionAdapter {
   extractMessageType(payload: any): string | undefined {
     if (!payload || typeof payload !== 'object') return undefined;
     const known = ['createSurface', 'updateComponents', 'updateDataModel', 'deleteSurface'];
-    return known.find(k => k in payload);
+    return known.find(k => Object.prototype.hasOwnProperty.call(payload, k));
   }
 }

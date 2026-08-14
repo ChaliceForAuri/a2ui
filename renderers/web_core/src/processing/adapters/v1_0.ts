@@ -45,6 +45,6 @@ export class V1_0VersionAdapter implements VersionAdapter {
       'callRendererFunction',
       'agentFunctionResponse',
     ];
-    return known.find(k => k in payload);
+    return known.find(k => Object.prototype.hasOwnProperty.call(payload, k));
   }
 }

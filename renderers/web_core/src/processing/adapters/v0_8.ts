@@ -40,6 +40,6 @@ export class V0_8VersionAdapter implements VersionAdapter {
       'updateDataModel',
       'deleteSurface',
     ];
-    return known.find(k => k in payload);
+    return known.find(k => Object.prototype.hasOwnProperty.call(payload, k));
   }
 }

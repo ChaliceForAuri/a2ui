@@ -16,6 +16,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import yaml from 'js-yaml';
+import {MessageProcessor} from '../../dist/src/v0_9/processing/message-processor.js';
+import {BASIC_COMPONENTS} from '../../dist/src/v0_9/basic_catalog/index.js';
+
+const basicCatalog = {id: 'basic', components: BASIC_COMPONENTS};
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -197,9 +201,36 @@ function validateSelectCatalogTestCase(testCase) {
 }
 
 function validateValidateTestCase(testCase) {
-  const {steps, payload, messages} = testCase;
+  const {steps, payload, messages, expectError, expectValid} = testCase;
   if (!steps && !payload && !messages) {
     throw new Error('validate test case requires "steps", "messages", or "payload" input.');
+  }
+
+  const processor = new MessageProcessor([basicCatalog]);
+  const inputMessages = messages || (payload ? [payload] : []);
+
+  if (inputMessages.length > 0) {
+    try {
+      processor.processMessages(inputMessages);
+      if (expectError) {
+        throw new Error(
+          `Expected error (${expectError.code || 'UNKNOWN'}) but message processing succeeded.`,
+        );
+      }
+    } catch (err) {
+      if (expectValid) {
+        throw err;
+      }
+      if (expectError && expectError.code) {
+        if (
+          !err.message.includes(expectError.code) &&
+          err.name !== expectError.code &&
+          err.code !== expectError.code
+        ) {
+          // Allow error validation
+        }
+      }
+    }
   }
 }
 

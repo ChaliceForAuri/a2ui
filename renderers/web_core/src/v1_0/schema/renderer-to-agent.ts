@@ -27,7 +27,7 @@ export const ActionMessageSchema = z
         surfaceId: z.string(),
         sourceComponentId: z.string(),
         timestamp: z.string(),
-        context: z.record(z.string(), z.any()),
+        context: z.record(z.string(), z.unknown()),
         metadata: z
           .object({
             extensions: ExtensionsSchema.optional(),

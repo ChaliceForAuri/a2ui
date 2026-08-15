@@ -23,7 +23,7 @@ export const CallIdSchema = z.string().describe('Unique identifier for a functio
 export type CallId = z.infer<typeof CallIdSchema>;
 
 export const ExtensionsSchema = z
-  .record(z.string(), z.any())
+  .record(z.string(), z.unknown())
   .describe('Optional extension metadata.');
 export type Extensions = z.infer<typeof ExtensionsSchema>;
 
@@ -37,7 +37,7 @@ export type DataBinding = z.infer<typeof DataBindingSchema>;
 export const FunctionCallSchema = z.object({
   call: z.string().describe('The name of the function to call.'),
   catalogId: z.string().optional().describe('Catalog ID overriding surface default.'),
-  args: z.record(z.string(), z.any()).optional().describe('Arguments passed to the function.'),
+  args: z.record(z.string(), z.unknown()).optional().describe('Arguments passed to the function.'),
   returnType: z.enum(['string', 'number', 'boolean', 'array', 'object', 'any', 'void']).optional(),
 });
 export type FunctionCall = z.infer<typeof FunctionCallSchema>;
@@ -46,10 +46,10 @@ export const DynamicValueSchema = z.union([
   z.string(),
   z.number(),
   z.boolean(),
-  z.array(z.any()),
+  z.array(z.unknown()),
   DataBindingSchema,
   FunctionCallSchema,
-  z.record(z.string(), z.any()),
+  z.record(z.string(), z.unknown()),
 ]);
 export type DynamicValue = z.infer<typeof DynamicValueSchema>;
 

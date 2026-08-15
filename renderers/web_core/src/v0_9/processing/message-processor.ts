@@ -33,6 +33,8 @@ import {
 import {A2uiClientCapabilities, InlineCatalog} from '../schema/client-capabilities.js';
 import {A2uiClientDataModel} from '../schema/client-to-server.js';
 import {A2uiStateError, A2uiValidationError} from '../errors.js';
+import {VersionAdapterFactory} from '../../processing/adapters/factory.js';
+import {AnyComponent} from '../../v1_0/schema/agent-to-renderer.js';
 
 /**
  * Options for generating client capabilities.
@@ -331,6 +333,27 @@ export class MessageProcessor<T extends ComponentApi> {
 
     const surface = new SurfaceModel<T>(surfaceId, catalog, theme, sendDataModel ?? false);
     this.model.addSurface(surface);
+
+    // Extract and apply initial state via VersionAdapterFactory
+    const adapter = VersionAdapterFactory.resolveFromPayload(message);
+    const initialState = adapter.extractInitialState(message);
+
+    if (initialState.dataModel) {
+      for (const [key, val] of Object.entries(initialState.dataModel)) {
+        const path = key.startsWith('/') ? key : `/${key}`;
+        surface.dataModel.set(path, val);
+      }
+    }
+
+    if (initialState.components && initialState.components.length > 0) {
+      this.processUpdateComponentsMessage({
+        version: message.version,
+        updateComponents: {
+          surfaceId,
+          components: initialState.components as AnyComponent[],
+        },
+      });
+    }
   }
 
   private processDeleteSurfaceMessage(message: DeleteSurfaceMessage): void {
@@ -456,26 +479,28 @@ export class MessageProcessor<T extends ComponentApi> {
     return list;
   }
 
+  private extractChildIdsFromProps(props: Record<string, any>, list: string[] = []): string[] {
+    if (!props || typeof props !== 'object') return list;
+    for (const [key, val] of Object.entries(props)) {
+      if (key === 'id' || key === 'component') continue;
+      this.extractChildIds(val, list);
+    }
+    return list;
+  }
+
   private validateCompositionConstraints(surface: SurfaceModel<T>, newComponents: any[]): void {
     // 1. Build map of all component types in the surface (combining existing & new)
     const typeMap = new Map<string, string>();
     const childMap = new Map<string, string[]>();
 
-    const addChildren = (parentId: string, childVal: any) => {
-      if (!childVal) return;
-      let list = childMap.get(parentId);
-      if (!list) {
-        list = [];
-        childMap.set(parentId, list);
-      }
-      this.extractChildIds(childVal, list);
-    };
-
     for (const [id, model] of surface.componentsModel.entries) {
       typeMap.set(id, model.type);
       const props = (model as any).properties || {};
-      if (props.children) addChildren(id, props.children);
-      if (props.child) addChildren(id, props.child);
+      const list: string[] = [];
+      this.extractChildIdsFromProps(props, list);
+      if (list.length > 0) {
+        childMap.set(id, list);
+      }
     }
 
     for (const comp of newComponents) {
@@ -484,8 +509,13 @@ export class MessageProcessor<T extends ComponentApi> {
         typeMap.set(id, component);
       }
       if (id) {
-        if (props.children) addChildren(id, props.children);
-        if (props.child) addChildren(id, props.child);
+        const list: string[] = [];
+        this.extractChildIdsFromProps(props, list);
+        if (list.length > 0) {
+          childMap.set(id, list);
+        } else {
+          childMap.delete(id);
+        }
       }
     }
 

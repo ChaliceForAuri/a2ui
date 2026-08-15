@@ -108,7 +108,7 @@ export class DataModel {
     }
 
     if (path === '/' || path === '') {
-      this.data = value;
+      this.data = value === null || value === undefined ? {} : value;
       this.notifyAllSignals();
       return this;
     }

@@ -34,7 +34,7 @@ export class V1_0VersionAdapter implements VersionAdapter {
     return {
       components: Array.isArray(cs.components) ? cs.components : undefined,
       dataModel:
-        cs.dataModel && typeof cs.dataModel === 'object'
+        cs.dataModel && typeof cs.dataModel === 'object' && !Array.isArray(cs.dataModel)
           ? (cs.dataModel as Record<string, unknown>)
           : undefined,
     };

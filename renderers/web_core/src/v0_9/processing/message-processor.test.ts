@@ -937,5 +937,41 @@ describe('MessageProcessor', () => {
         ]);
       }, /cannot contain child 'v1' \(Video\)/);
     });
+
+    it('processes v1.0 createSurface message with inline components and dataModel', () => {
+      const cardApi: ComponentApi = {
+        name: 'Card',
+        schema: z.object({child: z.any()}),
+      };
+      const textApi: ComponentApi = {
+        name: 'Text',
+        schema: z.object({text: z.string()}),
+      };
+      const inlineCat = new Catalog('inline-cat', [cardApi, textApi]);
+      const proc = new MessageProcessor([inlineCat]);
+
+      proc.processMessages([
+        {
+          version: 'v1.0',
+          createSurface: {
+            surfaceId: 's1',
+            catalogId: 'inline-cat',
+            components: [
+              {id: 'root', component: 'Card', child: 't1'},
+              {id: 't1', component: 'Text', text: 'Hello World'},
+            ],
+            dataModel: {
+              user: {name: 'Alice'},
+            },
+          },
+        } as any,
+      ]);
+
+      const surface = proc.model.getSurface('s1');
+      assert.ok(surface);
+      assert.strictEqual(surface.componentsModel.get('root')?.type, 'Card');
+      assert.strictEqual(surface.componentsModel.get('t1')?.type, 'Text');
+      assert.strictEqual(surface.dataModel.get('/user/name'), 'Alice');
+    });
   });
 });

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { TestBed } from '@angular/core/testing';
-import { DemoComponent } from '../../demo.component';
-import { EXAMPLES_V08, EXAMPLES_V09 } from '../../generated/examples-bundle';
-import { provideMarkdownRenderer } from '../../../../../src/v0_9/core/markdown';
-import { A2UI_VERSION, Version } from '../../types';
+import {TestBed} from '@angular/core/testing';
+import {DemoComponent} from '../../demo.component';
+import {EXAMPLES_V08, EXAMPLES_V09} from '../../generated/examples-bundle';
+import {provideMarkdownRenderer} from '../../../../../src/v0_9/core/markdown';
+import {A2UI_VERSION, Version} from '../../types';
 
-export { Version };
+export {Version};
 
 /**
  * Helper function to load an example in the DemoComponent for testing.
@@ -43,12 +43,12 @@ export async function loadExample(exampleName: string, version: Version = Versio
   fixture.detectChanges();
 
   const examples = version === Version.V0_9 ? EXAMPLES_V09 : EXAMPLES_V08;
-  let example = examples.find((ex) => ex.name === exampleName);
+  let example = examples.find(ex => ex.name === exampleName);
 
   if (version === Version.V0_8 && !example) {
     example =
-      examples.find((ex) => ex.name === `${exampleName} (basic)`) ||
-      examples.find((ex) => ex.name === `${exampleName} (minimal)`);
+      examples.find(ex => ex.name === `${exampleName} (basic)`) ||
+      examples.find(ex => ex.name === `${exampleName} (minimal)`);
   }
 
   expect(example).withContext(`Example not found: ${exampleName}`).toBeTruthy();
@@ -79,7 +79,7 @@ async function whenSettled(): Promise<void> {
  * Helper function to wait for a given number of milliseconds.
  */
 export function wait(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export function getCanvas(): HTMLDivElement {

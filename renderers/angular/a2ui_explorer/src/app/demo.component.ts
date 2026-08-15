@@ -23,19 +23,19 @@ import {
   effect,
   signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { A2uiRendererService, A2UI_RENDERER_CONFIG } from '@a2ui/angular/v0_9';
-import { AgentStubService } from './agent-stub.service';
-import { AgentStubV08Service } from './agent-stub-v08.service';
-import { AgentStubV09Service } from './agent-stub-v09.service';
-import { SurfaceComponent as SurfaceComponentV09 } from '@a2ui/angular/v0_9';
-import { provideMarkdownRenderer, Surface as SurfaceV08 } from '@a2ui/angular/v0_8';
-import { AngularCatalog } from '@a2ui/angular/v0_9';
-import { DemoCatalog } from './demo-catalog';
-import { A2uiClientAction } from '@a2ui/web_core/v0_9';
-import { A2uiExample, A2UI_VERSION, A2UI_EXAMPLES, Version } from './types';
-import { ActionDispatcher } from './action-dispatcher.service';
-import { Catalog as CatalogV08, DEFAULT_CATALOG as DEFAULT_CATALOG_V08 } from '@a2ui/angular/v0_8';
+import {CommonModule} from '@angular/common';
+import {A2uiRendererService, A2UI_RENDERER_CONFIG} from '@a2ui/angular/v0_9';
+import {AgentStubService} from './agent-stub.service';
+import {AgentStubV08Service} from './agent-stub-v08.service';
+import {AgentStubV09Service} from './agent-stub-v09.service';
+import {SurfaceComponent as SurfaceComponentV09} from '@a2ui/angular/v0_9';
+import {provideMarkdownRenderer, Surface as SurfaceV08} from '@a2ui/angular/v0_8';
+import {AngularCatalog} from '@a2ui/angular/v0_9';
+import {DemoCatalog} from './demo-catalog';
+import {A2uiClientAction} from '@a2ui/web_core/v0_9';
+import {A2uiExample, A2UI_VERSION, A2UI_EXAMPLES, Version} from './types';
+import {ActionDispatcher} from './action-dispatcher.service';
+import {Catalog as CatalogV08, DEFAULT_CATALOG as DEFAULT_CATALOG_V08} from '@a2ui/angular/v0_8';
 
 /**
  * Main dashboard component for A2UI v0.9 Angular Renderer.
@@ -560,8 +560,8 @@ import { Catalog as CatalogV08, DEFAULT_CATALOG as DEFAULT_CATALOG_V08 } from '@
   ],
   providers: [
     A2uiRendererService,
-    { provide: AngularCatalog, useClass: DemoCatalog },
-    { provide: CatalogV08, useValue: DEFAULT_CATALOG_V08 },
+    {provide: AngularCatalog, useClass: DemoCatalog},
+    {provide: CatalogV08, useValue: DEFAULT_CATALOG_V08},
     provideMarkdownRenderer(),
     ActionDispatcher,
     {
@@ -696,7 +696,7 @@ export class DemoComponent implements OnInit, OnDestroy {
 
       if (!('createSurface' in parsed) || !this.selectedExample) return;
 
-      const updatedMessages = this.selectedExample.messages.map((m) =>
+      const updatedMessages = this.selectedExample.messages.map(m =>
         'createSurface' in m ? parsed : m,
       );
 
@@ -768,7 +768,7 @@ export class DemoComponent implements OnInit, OnDestroy {
   private selectExampleFromUrl(): void {
     const hash = window.location.hash.substring(1) || '';
     const example: A2uiExample | undefined =
-      this.examples.find((ex) => this.slugify(ex.name) === hash) || this.examples[0];
+      this.examples.find(ex => this.slugify(ex.name) === hash) || this.examples[0];
     if (!example) return;
     this.selectExample(example);
   }

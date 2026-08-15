@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { ComponentFixture } from '@angular/core/testing';
-import { DemoComponent } from '../../demo.component';
-import { Version, getCanvas, loadExample, wait } from '../utils/test_utils';
+import {ComponentFixture} from '@angular/core/testing';
+import {DemoComponent} from '../../demo.component';
+import {Version, getCanvas, loadExample, wait} from '../utils/test_utils';
 
 describe('Example: Contact Card (basic) (v0.8)', () => {
   let textContent: string;

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { Injectable, signal } from '@angular/core';
-import { A2uiRendererService } from '@a2ui/angular/v0_9';
-import { A2uiClientAction, A2uiMessage, CreateSurfaceMessage } from '@a2ui/web_core/v0_9';
-import { ActionDispatcher } from './action-dispatcher.service';
-import { AgentStubService } from './agent-stub.service';
+import {Injectable, signal} from '@angular/core';
+import {A2uiRendererService} from '@a2ui/angular/v0_9';
+import {A2uiClientAction, A2uiMessage, CreateSurfaceMessage} from '@a2ui/web_core/v0_9';
+import {ActionDispatcher} from './action-dispatcher.service';
+import {AgentStubService} from './agent-stub.service';
 
 /**
  * Context for the 'update_property' event.
@@ -47,11 +47,11 @@ interface SubmitFormContext {
 })
 export class AgentStubV09Service extends AgentStubService {
   override dataModel = signal<Record<string, unknown>>({});
-  override surfaceId = signal<string>('demo-surface', { equal: () => false });
-  override eventsLog = signal<Array<{ timestamp: Date; action: A2uiClientAction }>>([]);
+  override surfaceId = signal<string>('demo-surface', {equal: () => false});
+  override eventsLog = signal<Array<{timestamp: Date; action: A2uiClientAction}>>([]);
   override currentCreateSurfaceMessage = signal<CreateSurfaceMessage | null>(null);
-  private actionSub?: { unsubscribe: () => void };
-  private dataModelSub?: { unsubscribe: () => void };
+  private actionSub?: {unsubscribe: () => void};
+  private dataModelSub?: {unsubscribe: () => void};
 
   constructor(
     private rendererService: A2uiRendererService,
@@ -64,9 +64,9 @@ export class AgentStubV09Service extends AgentStubService {
     console.log('[AgentStubV09] handleAction action:', action);
 
     setTimeout(() => {
-      const { name, context } = action;
+      const {name, context} = action;
       if (name === 'update_property' && context) {
-        const { path, value, surfaceId } = context as unknown as UpdatePropertyContext;
+        const {path, value, surfaceId} = context as unknown as UpdatePropertyContext;
         console.log(
           '[AgentStubV09] update_property path:',
           path,
@@ -121,7 +121,7 @@ export class AgentStubV09Service extends AgentStubService {
             this.rendererService.processMessages([
               {
                 version: 'v0.9',
-                deleteSurface: { surfaceId: createSurface.surfaceId },
+                deleteSurface: {surfaceId: createSurface.surfaceId},
               },
             ]);
           }
@@ -136,9 +136,9 @@ export class AgentStubV09Service extends AgentStubService {
     if (this.actionSub) {
       this.actionSub.unsubscribe();
     }
-    this.actionSub = this.actionDispatcher.actions.subscribe((action) => {
+    this.actionSub = this.actionDispatcher.actions.subscribe(action => {
       this.handleAction(action);
-      this.eventsLog.update((log) => [{ timestamp: new Date(), action }, ...log]);
+      this.eventsLog.update(log => [{timestamp: new Date(), action}, ...log]);
     });
 
     this.rendererService.processMessages(clonedMessages);
@@ -148,7 +148,7 @@ export class AgentStubV09Service extends AgentStubService {
     }
     const surface = this.rendererService.surfaceGroup?.getSurface(newSurfaceId);
     if (surface && surface.dataModel) {
-      this.dataModelSub = surface.dataModel.subscribe('/', (data) => {
+      this.dataModelSub = surface.dataModel.subscribe('/', data => {
         this.dataModel.set(data as Record<string, unknown>);
       });
       this.dataModel.set(surface.dataModel.get('/'));

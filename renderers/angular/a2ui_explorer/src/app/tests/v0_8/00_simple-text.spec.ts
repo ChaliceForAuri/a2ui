@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Version, getCanvas, loadExample } from '../utils/test_utils';
+import {Version, getCanvas, loadExample} from '../utils/test_utils';
 
 describe('Example: Simple Text (v0.8)', () => {
   let textContent: string;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { getCanvas, loadExample } from '../utils';
+import {getCanvas, loadExample} from '../utils';
 
 describe('Example: Row Layout', () => {
   let textContent: string;

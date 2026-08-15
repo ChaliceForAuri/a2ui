@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {Injectable} from '@angular/core';
-import {AngularCatalog, BASIC_COMPONENTS, BASIC_FUNCTIONS} from '@a2ui/angular/v0_9';
-import {customSliderComponentDeclaration} from './custom-slider.component';
+import { Injectable } from '@angular/core';
+import { AngularCatalog, BASIC_COMPONENTS, BASIC_FUNCTIONS } from '@a2ui/angular/v0_9';
+import { customSliderComponentDeclaration } from './custom-slider.component';
 
 /**
  * A catalog specific to the demo, extending the basic catalog with custom components.

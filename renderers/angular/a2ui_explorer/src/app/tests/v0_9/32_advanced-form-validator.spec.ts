@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {ComponentFixture} from '@angular/core/testing';
-import {DemoComponent} from '../../demo.component';
-import {getCanvas, loadExample, wait} from '../utils';
+import { ComponentFixture } from '@angular/core/testing';
+import { DemoComponent } from '../../demo.component';
+import { getCanvas, loadExample, wait } from '../utils';
 
 describe('Example: Advanced Form Validator', () => {
   let fixture: ComponentFixture<DemoComponent>;
@@ -47,7 +47,7 @@ describe('Example: Advanced Form Validator', () => {
 
   it('should show error for invalid email', async () => {
     const inputs = [...fixture.nativeElement.querySelectorAll('input')] as HTMLInputElement[];
-    const textInputs = inputs.filter(i => i.type === 'text' || !i.type);
+    const textInputs = inputs.filter((i) => i.type === 'text' || !i.type);
 
     const emailInput = textInputs[0];
     emailInput.value = 'invalid-email';
@@ -61,7 +61,7 @@ describe('Example: Advanced Form Validator', () => {
 
   it('should show error for invalid phone', async () => {
     const inputs = [...fixture.nativeElement.querySelectorAll('input')] as HTMLInputElement[];
-    const textInputs = inputs.filter(i => i.type === 'text' || !i.type);
+    const textInputs = inputs.filter((i) => i.type === 'text' || !i.type);
 
     const phoneInput = textInputs[1];
     phoneInput.value = '123';
@@ -75,7 +75,7 @@ describe('Example: Advanced Form Validator', () => {
 
   it('should show error for invalid zip', async () => {
     const inputs = [...fixture.nativeElement.querySelectorAll('input')] as HTMLInputElement[];
-    const textInputs = inputs.filter(i => i.type === 'text' || !i.type);
+    const textInputs = inputs.filter((i) => i.type === 'text' || !i.type);
 
     const zipInput = textInputs[2];
     zipInput.value = '1234';

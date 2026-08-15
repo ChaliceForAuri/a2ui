@@ -28,12 +28,12 @@ export class VersionAdapterFactory {
   ]);
 
   static getAdapter(version: string): VersionAdapter {
-    const adapter = this.adapters.get(version);
+    const adapter = VersionAdapterFactory.adapters.get(version);
     if (!adapter) {
       console.warn(
         `[VersionAdapterFactory] Unrecognized version '${version}', falling back to v1.0 adapter.`,
       );
-      return this.adapters.get('v1.0')!;
+      return VersionAdapterFactory.adapters.get('v1.0')!;
     }
     return adapter;
   }
@@ -44,8 +44,8 @@ export class VersionAdapterFactory {
         ? (payload as {version: unknown}).version
         : undefined;
     if (typeof version === 'string') {
-      return this.getAdapter(version);
+      return VersionAdapterFactory.getAdapter(version);
     }
-    return this.getAdapter('v1.0');
+    return VersionAdapterFactory.getAdapter('v1.0');
   }
 }

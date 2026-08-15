@@ -16,7 +16,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import {parseArgs} from 'node:util';
+import { parseArgs } from 'node:util';
 
 /**
  * The default output file path where the generated examples bundle will be written.
@@ -32,9 +32,9 @@ const DEFAULT_CATALOGS = ['basic'];
  * The options that this script accepts.
  */
 const options = {
-  help: {type: 'boolean', short: 'h'},
-  'out-file': {type: 'string', short: 'o', default: DEFAULT_OUT_FILE},
-  catalog: {type: 'string', short: 'c', multiple: true, default: DEFAULT_CATALOGS},
+  help: { type: 'boolean', short: 'h' },
+  'out-file': { type: 'string', short: 'o', default: DEFAULT_OUT_FILE },
+  catalog: { type: 'string', short: 'c', multiple: true, default: DEFAULT_CATALOGS },
 };
 
 /**
@@ -59,7 +59,7 @@ function readExamples(specPath, catalogs, version) {
     if (fs.existsSync(examplesDir)) {
       const files = fs
         .readdirSync(examplesDir)
-        .filter(f => f.endsWith('.json'))
+        .filter((f) => f.endsWith('.json'))
         .sort();
       for (const file of files) {
         const filePath = path.join(examplesDir, file);
@@ -72,7 +72,7 @@ function readExamples(specPath, catalogs, version) {
             .replace('.json', '')
             .replace(/^[0-9]+_/, '')
             .replace(/[-_]/g, ' ')
-            .replace(/\b\w/g, l => l.toUpperCase());
+            .replace(/\b\w/g, (l) => l.toUpperCase());
 
           if (Array.isArray(data)) {
             example = {
@@ -96,7 +96,7 @@ function readExamples(specPath, catalogs, version) {
 
           examples.push(example);
         } catch (e) {
-          throw new Error(`Error parsing ${filePath}`, {cause: e});
+          throw new Error(`Error parsing ${filePath}`, { cause: e });
         }
       }
     }
@@ -109,7 +109,7 @@ function readExamples(specPath, catalogs, version) {
  * Parses arguments, reads catalog examples, and generates the TypeScript bundle.
  */
 async function main() {
-  const {values} = parseArgs({options, allowNegative: true});
+  const { values } = parseArgs({ options, allowNegative: true });
 
   if (values.help) {
     console.log(HELP_MESSAGE);
@@ -120,7 +120,7 @@ async function main() {
   const outDir = path.dirname(outPath);
 
   if (!fs.existsSync(outDir)) {
-    fs.mkdirSync(outDir, {recursive: true});
+    fs.mkdirSync(outDir, { recursive: true });
   }
 
   const catalogs = values.catalog;
@@ -135,9 +135,9 @@ async function main() {
 
 import { Example, Example_08 } from '../types';
 
-export const EXAMPLES_V08: Example_08[] = ${JSON.stringify(examplesV08, null, 2)};
+export const EXAMPLES_V08: Example_08[] = JSON.parse(${JSON.stringify(JSON.stringify(examplesV08))});
 
-export const EXAMPLES_V09: Example[] = ${JSON.stringify(examplesV09, null, 2)};
+export const EXAMPLES_V09: Example[] = JSON.parse(${JSON.stringify(JSON.stringify(examplesV09))});
 
 // Defaults to v0.9
 export const EXAMPLES: Example[] = EXAMPLES_V09;
@@ -147,7 +147,7 @@ export const EXAMPLES: Example[] = EXAMPLES_V09;
   console.log(`Generated examples to ${outPath}`);
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error(err);
   process.exit(1);
 });

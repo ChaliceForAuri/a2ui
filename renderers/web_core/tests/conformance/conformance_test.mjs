@@ -197,29 +197,32 @@ async function validateRpcTestCase(testCase) {
   if (!args) throw new Error('handle_rpc test requires "args" object.');
   if (!expect) throw new Error('handle_rpc test requires "expect" object.');
 
-  const {
-    message,
-    function_metadata,
-    user_activation_present,
-    is_user_activated,
-    outbound_call,
-    inbound_response,
-  } = args;
+  const message = args.message;
+  const functionMetadata = args.functionMetadata || args.function_metadata;
+  const userActivationPresent =
+    args.userActivationPresent ??
+    args.user_activation_present ??
+    args.isUserActivated ??
+    args.is_user_activated ??
+    false;
+  const outboundCall = args.outboundCall || args.outbound_call;
+  const inboundResponse = args.inboundResponse || args.inbound_response;
+
   const catalogId =
     message?.callRendererFunction?.callFunction?.catalogId ||
-    outbound_call?.callFunction?.catalogId ||
+    outboundCall?.callFunction?.catalogId ||
     'media_catalog';
 
   const functionsMap = new Map();
-  if (function_metadata) {
-    for (const [funcName, meta] of Object.entries(function_metadata)) {
+  if (functionMetadata) {
+    for (const [funcName, meta] of Object.entries(functionMetadata)) {
       const funcImpl = createFunctionImplementation(
         {
           name: funcName,
           returnType: 'any',
           schema: z.any(),
-          callableFrom: meta.callableFrom,
-          requiresUserActivation: meta.requiresUserActivation,
+          callableFrom: meta.callableFrom || meta.callable_from,
+          requiresUserActivation: meta.requiresUserActivation ?? meta.requires_user_activation,
         },
         () => {
           if (funcName === 'failingFunction') {
@@ -242,22 +245,23 @@ async function validateRpcTestCase(testCase) {
     invoker: () => {},
   };
 
-  if (outbound_call) {
+  if (outboundCall) {
     let emitted;
     const handler = new RpcHandler([catalog], msg => {
       emitted = msg;
     });
     const promise = handler.callAgentFunction(
-      outbound_call.surfaceId,
-      outbound_call.functionCallId,
-      outbound_call.callFunction,
+      outboundCall.surfaceId,
+      outboundCall.functionCallId,
+      outboundCall.callFunction,
     );
-    if (inbound_response) {
-      handler.handleAgentFunctionResponse(inbound_response);
+    if (inboundResponse) {
+      handler.handleAgentFunctionResponse(inboundResponse);
     }
     const result = await promise;
-    if (expect.correlated_call_id) {
-      assert.strictEqual(emitted.callAgentFunction.functionCallId, expect.correlated_call_id);
+    const correlatedCallId = expect.correlatedCallId || expect.correlated_call_id;
+    if (correlatedCallId) {
+      assert.strictEqual(emitted.callAgentFunction.functionCallId, correlatedCallId);
     }
     if (expect.result) {
       assert.deepStrictEqual(result, expect.result);
@@ -272,7 +276,7 @@ async function validateRpcTestCase(testCase) {
   const response = await handler.handleCallRendererFunction(
     message,
     dataContext,
-    user_activation_present ?? is_user_activated ?? false,
+    userActivationPresent,
   );
 
   if (expect.response) {

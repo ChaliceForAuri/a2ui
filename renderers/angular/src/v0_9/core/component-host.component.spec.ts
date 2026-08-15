@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-import {TestBed, ComponentFixture} from '@angular/core/testing';
-import {By} from '@angular/platform-browser';
-import {ComponentHostComponent} from './component-host.component';
-import {A2uiRendererService} from './a2ui-renderer.service';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { ComponentHostComponent } from './component-host.component';
+import { A2uiRendererService } from './a2ui-renderer.service';
 import {
   ComponentApi,
   ComponentModel,
   SurfaceComponentsModel,
   SurfaceModel,
 } from '@a2ui/web_core/v0_9';
-import {Component, EnvironmentInjector, EventEmitter, Input, NgZone} from '@angular/core';
-import {initializeAngularReactivity} from './reactivity';
+import { Component, EnvironmentInjector, EventEmitter, Input, NgZone } from '@angular/core';
+import { initializeAngularReactivity } from './reactivity';
 
 @Component({
   selector: 'test-child',
@@ -49,12 +49,12 @@ describe('ComponentHostComponent', () => {
   beforeEach(async () => {
     mockCatalog = {
       id: 'test-catalog',
-      components: new Map([['TestType', {component: TestChildComponent}]]),
+      components: new Map([['TestType', { component: TestChildComponent }]]),
     };
 
     const mockSurfaceComponentsModel = new SurfaceComponentsModel();
     mockSurfaceComponentsModel.addComponent(
-      new ComponentModel('comp1', 'TestType', {text: 'Hello'}),
+      new ComponentModel('comp1', 'TestType', { text: 'Hello' }),
     );
 
     mockSurface = {
@@ -73,14 +73,14 @@ describe('ComponentHostComponent', () => {
 
     TestBed.configureTestingModule({
       imports: [ComponentHostComponent],
-      providers: [{provide: A2uiRendererService, useValue: mockRendererService}],
+      providers: [{ provide: A2uiRendererService, useValue: mockRendererService }],
     });
 
     initializeAngularReactivity(TestBed.inject(EnvironmentInjector));
 
     fixture = TestBed.createComponent(ComponentHostComponent);
     component = fixture.componentInstance;
-    fixture.componentRef.setInput('componentKey', {id: 'comp1', basePath: '/'});
+    fixture.componentRef.setInput('componentKey', { id: 'comp1', basePath: '/' });
     fixture.componentRef.setInput('surfaceId', 'surf1');
   });
 
@@ -106,7 +106,7 @@ describe('ComponentHostComponent', () => {
     });
 
     it('should use provided dataContextPath for ComponentContext', () => {
-      fixture.componentRef.setInput('componentKey', {id: 'comp1', basePath: '/nested/path'});
+      fixture.componentRef.setInput('componentKey', { id: 'comp1', basePath: '/nested/path' });
       fixture.detectChanges();
 
       const childDebugElement = fixture.debugElement.query(By.directive(TestChildComponent));
@@ -126,7 +126,7 @@ describe('ComponentHostComponent', () => {
 
       const compModel = mockSurface.componentsModel.get('comp1')!;
       // This properties assignment triggers the update.
-      compModel.properties = {text: 'Hello', newProp: 'new value'};
+      compModel.properties = { text: 'Hello', newProp: 'new value' };
 
       fixture.detectChanges(); // Propagate changes
 
@@ -162,7 +162,7 @@ describe('ComponentHostComponent', () => {
     });
 
     it('should handle synchronous surface creation and unsubscribe cleanly', () => {
-      const mockSubscription = {unsubscribe: jasmine.createSpy('unsubscribe')};
+      const mockSubscription = { unsubscribe: jasmine.createSpy('unsubscribe') };
       mockSurfaceGroup.onSurfaceCreated = {
         subscribe: jasmine
           .createSpy('subscribe')
@@ -241,7 +241,7 @@ describe('ComponentHostComponent', () => {
       const runSpy = spyOn(ngZone, 'run').and.callThrough();
 
       const compModel = mockSurface.componentsModel.get('comp1')!;
-      compModel.properties = {text: 'Hello', newProp: 'new value'};
+      compModel.properties = { text: 'Hello', newProp: 'new value' };
 
       expect(runSpy).toHaveBeenCalled();
     });
@@ -255,7 +255,7 @@ describe('ComponentHostComponent', () => {
       expect(compiled.innerHTML).toContain('Child Component');
     });
     it('should pass dataContextPath to the rendered component', () => {
-      fixture.componentRef.setInput('componentKey', {id: 'comp1', basePath: '/some/path'});
+      fixture.componentRef.setInput('componentKey', { id: 'comp1', basePath: '/some/path' });
       fixture.detectChanges();
 
       const childDebugElement = fixture.debugElement.query(By.directive(TestChildComponent));

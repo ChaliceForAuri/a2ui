@@ -30,8 +30,8 @@ import {
   A2uiMessage,
   A2uiClientAction as Action,
 } from '@a2ui/web_core/v0_9';
-import {AngularComponentImplementation, AngularCatalog} from '../catalog/types';
-import {initializeAngularReactivity} from './reactivity';
+import { AngularComponentImplementation, AngularCatalog } from '../catalog/types';
+import { initializeAngularReactivity } from './reactivity';
 
 /**
  * Configuration for the A2UI renderer.
@@ -68,8 +68,8 @@ export function provideA2Ui(
     {
       provide: A2UI_RENDERER_CONFIG,
       ...(typeof configOrFactory === 'function'
-        ? {useFactory: configOrFactory}
-        : {useValue: configOrFactory}),
+        ? { useFactory: configOrFactory }
+        : { useValue: configOrFactory }),
     },
   ]);
 }
@@ -81,7 +81,7 @@ export function provideA2Ui(
  * {@link MessageProcessor} that turns A2UI protocol messages into a reactive
  * {@link SurfaceGroupModel}.
  */
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class A2uiRendererService implements OnDestroy {
   private _messageProcessor: MessageProcessor<AngularComponentImplementation>;
   private _catalogs: AngularCatalog[] = [];

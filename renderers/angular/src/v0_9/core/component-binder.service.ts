@@ -21,9 +21,9 @@ import {
   Signal as AngularSignal,
   EnvironmentInjector,
 } from '@angular/core';
-import {ComponentContext, computed} from '@a2ui/web_core/v0_9';
-import {BoundProperty, ComponentTemplate} from './types';
-import {assertAngularSignal, initializeAngularReactivity} from './reactivity';
+import { ComponentContext, computed } from '@a2ui/web_core/v0_9';
+import { BoundProperty, ComponentTemplate } from './types';
+import { assertAngularSignal, initializeAngularReactivity } from './reactivity';
 
 /** Represents a reference to a child component. */
 export interface Child {
@@ -70,7 +70,7 @@ export class ComponentBinder {
         value && typeof value === 'object' && 'path' in value && !('componentId' in value);
 
       if (isChildListTemplate) {
-        const listSig = context.dataContext.resolveSignal({path: value.path});
+        const listSig = context.dataContext.resolveSignal({ path: value.path });
         assertAngularSignal(listSig);
 
         const listContext = context.dataContext.nested(value.path);
@@ -96,7 +96,7 @@ export class ComponentBinder {
           if (typeof val === 'object' && val !== null && 'id' in val) {
             return val;
           }
-          return {id: val, basePath: context.dataContext.path};
+          return { id: val, basePath: context.dataContext.path };
         });
       } else if (key === 'children') {
         const originalSig = valueSignal;
@@ -104,16 +104,16 @@ export class ComponentBinder {
         const id = value?.componentId;
         const path = value?.path;
         if (id && path) {
-          template = {id, path};
+          template = { id, path };
         }
         valueSignal = computed(() => {
           const val = originalSig();
           const arr = Array.isArray(val) ? val : [];
-          return arr.map(item => {
+          return arr.map((item) => {
             if (typeof item === 'object' && item !== null && 'id' in item) {
               return item;
             }
-            return {id: item, basePath: context.dataContext.path};
+            return { id: item, basePath: context.dataContext.path };
           });
         });
       }
@@ -134,15 +134,15 @@ export class ComponentBinder {
       if (key === 'checks') {
         const checksArray = Array.isArray(value) ? value : [];
 
-        const ruleResults = checksArray.map(rule => {
+        const ruleResults = checksArray.map((rule) => {
           const condition = rule.condition || rule;
           const message = rule.message || 'Validation failed';
           const conditionSig = context.dataContext.resolveSignal(condition);
-          return {conditionSig, message};
+          return { conditionSig, message };
         });
 
         const isValidSignal = computed(() => {
-          return ruleResults.every(r => {
+          return ruleResults.every((r) => {
             assertAngularSignal(r.conditionSig);
             return !!r.conditionSig();
           });
@@ -150,11 +150,11 @@ export class ComponentBinder {
 
         const validationErrorsSignal = computed(() => {
           return ruleResults
-            .filter(r => {
+            .filter((r) => {
               assertAngularSignal(r.conditionSig);
               return !r.conditionSig();
             })
-            .map(r => r.message);
+            .map((r) => r.message);
         });
 
         bound['isValid'] = {

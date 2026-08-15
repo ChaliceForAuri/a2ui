@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
-import {ComponentApi} from '@a2ui/web_core/v0_9';
-import {createComponentImplementation} from './types';
-import {CatalogComponent} from '../core/catalog_component';
-import {z} from 'zod';
+import { Component } from '@angular/core';
+import { ComponentApi } from '@a2ui/web_core/v0_9';
+import { createComponentImplementation } from './types';
+import { CatalogComponent } from '../core/catalog_component';
+import { z } from 'zod';
 
 @Component({
   selector: 'test-comp',

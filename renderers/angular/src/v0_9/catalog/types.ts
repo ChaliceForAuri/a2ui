@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { Type } from '@angular/core';
-import { Catalog, ComponentApi } from '@a2ui/web_core/v0_9';
-import { CatalogComponentInstance } from '../core/catalog_component_instance';
+import {Type} from '@angular/core';
+import {Catalog, ComponentApi} from '@a2ui/web_core/v0_9';
+import {CatalogComponentInstance} from '../core/catalog_component_instance';
 
 /**
  * Temporary type used during basic catalog schema alignment to bypass strict type checking.

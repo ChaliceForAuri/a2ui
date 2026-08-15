@@ -25,12 +25,12 @@ import {
   signal,
   NgZone,
 } from '@angular/core';
-import { NgComponentOutlet } from '@angular/common';
-import { ComponentContext, ComponentModel, SurfaceModel, Subscription } from '@a2ui/web_core/v0_9';
-import { A2uiRendererService } from './a2ui-renderer.service';
-import { AngularCatalog } from '../catalog/types';
-import { ComponentBinder } from './component-binder.service';
-import { BoundProperty } from './types';
+import {NgComponentOutlet} from '@angular/common';
+import {ComponentContext, ComponentModel, SurfaceModel, Subscription} from '@a2ui/web_core/v0_9';
+import {A2uiRendererService} from './a2ui-renderer.service';
+import {AngularCatalog} from '../catalog/types';
+import {ComponentBinder} from './component-binder.service';
+import {BoundProperty} from './types';
 
 /**
  * Dynamically renders an A2UI component as defined in the current surface model.
@@ -67,7 +67,7 @@ import { BoundProperty } from './types';
 })
 export class ComponentHostComponent {
   /** The key of the component to render, either an ID string or an object with ID and basePath. Defaults to 'root'. */
-  componentKey = input<string | { id: string; basePath: string }>('root');
+  componentKey = input<string | {id: string; basePath: string}>('root');
 
   /** The unique identifier of the surface this component belongs to. */
   surfaceId = input.required<string>();
@@ -105,7 +105,7 @@ export class ComponentHostComponent {
     });
   }
 
-  private setupComponent(key: string | { id: string; basePath: string }, surfaceId: string) {
+  private setupComponent(key: string | {id: string; basePath: string}, surfaceId: string) {
     this.resetState();
 
     const surface = this.rendererService.surfaceGroup?.getSurface(surfaceId);
@@ -114,7 +114,7 @@ export class ComponentHostComponent {
       console.warn(`Surface ${surfaceId} not found. Waiting for it...`);
       this.surfaceSub?.unsubscribe();
       let unsubscribed = false;
-      const sub = this.rendererService.surfaceGroup?.onSurfaceCreated?.subscribe((s) => {
+      const sub = this.rendererService.surfaceGroup?.onSurfaceCreated?.subscribe(s => {
         if (s.id === surfaceId) {
           unsubscribed = true;
           if (this.surfaceSub) {
@@ -154,7 +154,7 @@ export class ComponentHostComponent {
     if (!componentModel) {
       console.warn(`Component ${id} not found in surface ${surfaceId}. Waiting for it...`);
 
-      const sub = surface.componentsModel.onCreated.subscribe((comp) => {
+      const sub = surface.componentsModel.onCreated.subscribe(comp => {
         if (comp.id === id) {
           this.initializeComponent(surface, comp, id, basePath);
           sub.unsubscribe();

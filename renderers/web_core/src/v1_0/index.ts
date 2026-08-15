@@ -15,3 +15,4 @@
  */
 
 export * from './schema/index.js';
+export * from './rpc/rpc-handler.js';

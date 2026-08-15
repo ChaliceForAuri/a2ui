@@ -196,4 +196,64 @@ describe('Stage 3 (Sauce-TS) Bidirectional RPC & @index Function Verification', 
     );
     await assert.rejects(promise, /TIMEOUT/);
   });
+
+  it('falls back to surface default catalog when catalogId is omitted', async () => {
+    const handler = new RpcHandler([mockCatalog]);
+    const surface = new SurfaceModel('s1', mockCatalog);
+    const dataContext = new DataContext(surface, '/');
+
+    const res = await handler.handleCallRendererFunction(
+      {
+        version: 'v1.0',
+        callRendererFunction: {
+          functionCallId: 'call-default-cat',
+          callFunction: {
+            call: 'customRpc',
+            catalogId: 'basic',
+            args: {text: 'hello'},
+          },
+        },
+      },
+      dataContext,
+      true,
+    );
+
+    assert.strictEqual(res.rendererFunctionResponse.value, 'Processed: hello');
+  });
+
+  it('rejects callRendererFunction with INVALID_FUNCTION_CALL when argument schema validation fails', async () => {
+    const handler = new RpcHandler([mockCatalog]);
+    const surface = new SurfaceModel('s1', mockCatalog);
+    const dataContext = new DataContext(surface, '/');
+
+    const res = await handler.handleCallRendererFunction(
+      {
+        version: 'v1.0',
+        callRendererFunction: {
+          functionCallId: 'call-invalid-args',
+          callFunction: {
+            call: 'customRpc',
+            catalogId: 'basic',
+            args: {text: 12345}, // Number instead of expected string
+          },
+        },
+      },
+      dataContext,
+      true,
+    );
+
+    assert.ok(res.rendererFunctionResponse.error);
+    assert.strictEqual(res.rendererFunctionResponse.error.code, 'INVALID_FUNCTION_CALL');
+  });
+
+  it('cleans up pending agent call when outboundListener throws', async () => {
+    const handler = new RpcHandler([mockCatalog], () => {
+      throw new Error('Connection failed');
+    });
+
+    await assert.rejects(
+      handler.callAgentFunction('surface-1', 'fail-outbound', {call: 'testFunc'}),
+      /Connection failed/,
+    );
+  });
 });

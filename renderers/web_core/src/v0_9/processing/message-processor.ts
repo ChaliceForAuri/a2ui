@@ -284,14 +284,17 @@ export class MessageProcessor<T extends ComponentApi> {
    *
    * @param messages The messages or messages wrapper to process.
    */
-  processMessages(messages: A2uiMessage[] | A2uiMessageListWrapper): void {
+  processMessages(
+    messages: A2uiMessage[] | A2uiMessageListWrapper,
+    isUserActivated?: boolean,
+  ): void {
     const messageList = Array.isArray(messages) ? messages : messages.messages;
     for (const message of messageList) {
-      this.processMessage(message);
+      this.processMessage(message, isUserActivated);
     }
   }
 
-  private processMessage(message: A2uiMessage): void {
+  private processMessage(message: A2uiMessage, isUserActivated?: boolean): void {
     const updateTypes = [
       'createSurface',
       'updateComponents',
@@ -335,7 +338,9 @@ export class MessageProcessor<T extends ComponentApi> {
         throw new A2uiStateError('No active surface found to execute renderer function.');
       }
       const dataContext = new DataContext(surface, '/');
-      this.rpcHandler.handleCallRendererFunction(msg, dataContext).catch(() => {});
+      this.rpcHandler
+        .handleCallRendererFunction(msg, dataContext, isUserActivated ?? false)
+        .catch(() => {});
       return;
     }
 
@@ -343,6 +348,14 @@ export class MessageProcessor<T extends ComponentApi> {
       this.rpcHandler.handleAgentFunctionResponse(message as any);
       return;
     }
+  }
+
+  /**
+   * Disposes the MessageProcessor, its underlying surfaces, and RPC handlers.
+   */
+  dispose(): void {
+    this.rpcHandler.dispose();
+    this.model.dispose();
   }
 
   private processCreateSurfaceMessage(message: CreateSurfaceMessage): void {

@@ -82,13 +82,14 @@ export class RpcHandler<T extends ComponentApi> {
     const {functionCallId, callFunction} = message.callRendererFunction;
     const {call, catalogId, args} = callFunction;
 
-    // 1. Resolve catalog
-    const catalog = this.catalogs.find(c => c.id === catalogId);
+    // 1. Resolve catalog (fallback to surface default catalog if catalogId is omitted)
+    const targetCatalogId = catalogId || context.surface.catalog.id;
+    const catalog = this.catalogs.find(c => c.id === targetCatalogId);
     if (!catalog) {
       return this.createResponseError(
         functionCallId,
         'INVALID_FUNCTION_CALL',
-        `Catalog '${catalogId}' not found.`,
+        `Catalog '${targetCatalogId}' not found.`,
       );
     }
 
@@ -98,7 +99,7 @@ export class RpcHandler<T extends ComponentApi> {
       return this.createResponseError(
         functionCallId,
         'INVALID_FUNCTION_CALL',
-        `Function '${call}' not found in catalog '${catalogId}'.`,
+        `Function '${call}' not found in catalog '${targetCatalogId}'.`,
       );
     }
 
@@ -121,10 +122,25 @@ export class RpcHandler<T extends ComponentApi> {
       );
     }
 
-    // 5. Execute function safely
+    // 5. Enforce argument schema parsing
+    let safeArgs: Record<string, unknown>;
+    try {
+      safeArgs = funcImpl.schema
+        ? (funcImpl.schema.parse(args ?? {}) as Record<string, unknown>)
+        : (args ?? {});
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      return this.createResponseError(
+        functionCallId,
+        'INVALID_FUNCTION_CALL',
+        `Invalid function arguments for '${call}': ${errMsg}`,
+      );
+    }
+
+    // 6. Execute function safely
     let responseMsg: RendererFunctionResponseMessage;
     try {
-      const rawResult = await Promise.resolve(funcImpl.execute(args ?? {}, context));
+      const rawResult = await Promise.resolve(funcImpl.execute(safeArgs, context));
       const result = isSignal(rawResult) ? getValue(rawResult) : rawResult;
       responseMsg = {
         version: 'v1.0',
@@ -231,7 +247,13 @@ export class RpcHandler<T extends ComponentApi> {
       };
 
       if (this.outboundListener) {
-        this.outboundListener(outboundMsg);
+        try {
+          this.outboundListener(outboundMsg);
+        } catch (err) {
+          if (timer) clearTimeout(timer);
+          this.pendingAgentCalls.delete(functionCallId);
+          reject(err);
+        }
       }
     });
   }

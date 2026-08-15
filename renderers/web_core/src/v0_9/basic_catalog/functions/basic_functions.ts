@@ -455,11 +455,14 @@ export const IndexImplementation = createFunctionImplementation(IndexApi, (args,
   let idx = 0;
   for (let i = segments.length - 1; i >= 0; i--) {
     const segment = segments[i];
-    if (/^\d+$/.test(segment)) {
+    if (/^(0|[1-9]\d*)$/.test(segment)) {
       const parentPath = '/' + segments.slice(0, i).join('/');
       const parentVal = context.dataModel?.get?.(parentPath);
       const isNonArrayObject =
-        parentVal !== null && typeof parentVal === 'object' && !Array.isArray(parentVal);
+        parentVal !== null &&
+        parentVal !== undefined &&
+        typeof parentVal === 'object' &&
+        !Array.isArray(parentVal);
       if (!isNonArrayObject) {
         idx = parseInt(segment, 10);
         break;

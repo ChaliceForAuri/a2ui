@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Component, input } from '@angular/core';
-import { By } from '@angular/platform-browser';
-import { CardComponent } from './card.component';
-import { ComponentModel } from '@a2ui/web_core/v0_9';
-import { A2uiRendererService } from '../../core/a2ui-renderer.service';
-import { ComponentBinder } from '../../core/component-binder.service';
-import { setComponentProps, createBoundProperty, ComponentToProps } from '@a2ui/angular/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {Component, input} from '@angular/core';
+import {By} from '@angular/platform-browser';
+import {CardComponent} from './card.component';
+import {ComponentModel} from '@a2ui/web_core/v0_9';
+import {A2uiRendererService} from '../../core/a2ui-renderer.service';
+import {ComponentBinder} from '../../core/component-binder.service';
+import {setComponentProps, createBoundProperty, ComponentToProps} from '@a2ui/angular/testing';
 
 @Component({
   selector: 'dummy-text-for-card',
@@ -46,11 +46,11 @@ describe('CardComponent', () => {
       surfaceGroup: {
         getSurface: jasmine.createSpy('getSurface').and.returnValue({
           componentsModel: new Map([
-            ['child-1', new ComponentModel('child-1', 'Text', { text: { value: 'Child 1' } })],
+            ['child-1', new ComponentModel('child-1', 'Text', {text: {value: 'Child 1'}})],
           ]),
           catalog: {
             id: 'mock-catalog',
-            components: new Map([['Text', { type: 'Text', component: DummyTextComponent }]]),
+            components: new Map([['Text', {type: 'Text', component: DummyTextComponent}]]),
           },
         }),
       },
@@ -60,8 +60,8 @@ describe('CardComponent', () => {
     await TestBed.configureTestingModule({
       imports: [CardComponent],
       providers: [
-        { provide: A2uiRendererService, useValue: mockRendererService },
-        { provide: ComponentBinder, useValue: mockBinder },
+        {provide: A2uiRendererService, useValue: mockRendererService},
+        {provide: ComponentBinder, useValue: mockBinder},
       ],
     }).compileComponents();
   });
@@ -73,7 +73,7 @@ describe('CardComponent', () => {
     fixture.componentRef.setInput('dataContextPath', '/');
 
     defaultProps = {
-      child: createBoundProperty({ id: 'child-1', basePath: '/' }),
+      child: createBoundProperty({id: 'child-1', basePath: '/'}),
     };
     setComponentProps(fixture, defaultProps);
   });
@@ -87,6 +87,6 @@ describe('CardComponent', () => {
     fixture.detectChanges();
     const host = fixture.debugElement.query(By.css('a2ui-v09-component-host'));
     expect(host).toBeTruthy();
-    expect(host.componentInstance.componentKey()).toEqual({ id: 'child-1', basePath: '/' });
+    expect(host.componentInstance.componentKey()).toEqual({id: 'child-1', basePath: '/'});
   });
 });

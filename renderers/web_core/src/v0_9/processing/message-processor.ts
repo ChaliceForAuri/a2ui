@@ -331,8 +331,11 @@ export class MessageProcessor<T extends ComponentApi> {
       const surface = surfaceId
         ? this.model.getSurface(surfaceId)
         : Array.from(this.model.surfacesMap.values())[0];
-      const dataContext = surface ? new DataContext(surface, '/') : ({} as any);
-      this.rpcHandler.handleCallRendererFunction(msg, dataContext);
+      if (!surface) {
+        throw new A2uiStateError('No active surface found to execute renderer function.');
+      }
+      const dataContext = new DataContext(surface, '/');
+      this.rpcHandler.handleCallRendererFunction(msg, dataContext).catch(() => {});
       return;
     }
 

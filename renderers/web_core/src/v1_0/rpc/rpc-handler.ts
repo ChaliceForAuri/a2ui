@@ -16,6 +16,7 @@
 
 import {Catalog, ComponentApi} from '../../v0_9/catalog/types.js';
 import {DataContext} from '../../v0_9/rendering/data-context.js';
+import {isSignal, getValue} from '../../v0_9/reactivity/signals.js';
 import {
   CallRendererFunctionMessage,
   AgentFunctionResponseMessage,
@@ -71,6 +72,13 @@ export class RpcHandler<T extends ComponentApi> {
     context: DataContext,
     isUserActivated: boolean = false,
   ): Promise<RendererFunctionResponseMessage> {
+    if (!message.callRendererFunction?.callFunction) {
+      return this.createResponseError(
+        message.callRendererFunction?.functionCallId ?? 'unknown',
+        'INVALID_FUNCTION_CALL',
+        'Malformed message: missing callRendererFunction or callFunction.',
+      );
+    }
     const {functionCallId, callFunction} = message.callRendererFunction;
     const {call, catalogId, args} = callFunction;
 
@@ -116,7 +124,8 @@ export class RpcHandler<T extends ComponentApi> {
     // 5. Execute function safely
     let responseMsg: RendererFunctionResponseMessage;
     try {
-      const result = await Promise.resolve(funcImpl.execute(args ?? {}, context));
+      const rawResult = await Promise.resolve(funcImpl.execute(args ?? {}, context));
+      const result = isSignal(rawResult) ? getValue(rawResult) : rawResult;
       responseMsg = {
         version: 'v1.0',
         rendererFunctionResponse: {
@@ -150,6 +159,7 @@ export class RpcHandler<T extends ComponentApi> {
    * @param message The inbound agentFunctionResponse message.
    */
   handleAgentFunctionResponse(message: AgentFunctionResponseMessage): void {
+    if (!message.agentFunctionResponse) return;
     const {functionCallId, value, error} = message.agentFunctionResponse;
     const pending = this.pendingAgentCalls.get(functionCallId);
     if (!pending) return;
@@ -178,6 +188,14 @@ export class RpcHandler<T extends ComponentApi> {
     timeoutMs?: number,
   ): Promise<unknown> {
     return new Promise((resolve, reject) => {
+      if (this.pendingAgentCalls.has(functionCallId)) {
+        reject(
+          new Error(
+            `[DUPLICATE] A call with functionCallId '${functionCallId}' is already pending.`,
+          ),
+        );
+        return;
+      }
       let timer: ReturnType<typeof setTimeout> | undefined;
       if (timeoutMs && timeoutMs > 0) {
         timer = setTimeout(() => {

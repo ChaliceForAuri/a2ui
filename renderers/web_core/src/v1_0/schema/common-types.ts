@@ -42,17 +42,15 @@ export const FunctionCallSchema = z.object({
 });
 export type FunctionCall = z.infer<typeof FunctionCallSchema>;
 
-export const DynamicValueSchema = z.lazy(() =>
-  z.union([
-    z.string(),
-    z.number(),
-    z.boolean(),
-    z.array(z.any()),
-    DataBindingSchema,
-    FunctionCallSchema,
-    z.record(z.string(), z.any()),
-  ]),
-);
+export const DynamicValueSchema = z.union([
+  z.string(),
+  z.number(),
+  z.boolean(),
+  z.array(z.any()),
+  DataBindingSchema,
+  FunctionCallSchema,
+  z.record(z.string(), z.any()),
+]);
 export type DynamicValue = z.infer<typeof DynamicValueSchema>;
 
 export const DynamicStringSchema = z.union([z.string(), DataBindingSchema, FunctionCallSchema]);

@@ -22,10 +22,13 @@ import {
   FunctionResponseSchema,
 } from './common-types.js';
 
-export const AnyComponentSchema = ComponentCommonSchema.passthrough().refine(
-  comp => (comp as any).component !== 'Surface',
-  {message: 'Component type cannot be "Surface".'},
-);
+export const AnyComponentSchema = ComponentCommonSchema.extend({
+  component: z.string(),
+})
+  .passthrough()
+  .refine(comp => comp.component !== 'Surface', {
+    message: 'Component type cannot be "Surface".',
+  });
 export type AnyComponent = z.infer<typeof AnyComponentSchema>;
 
 export const ComponentsListSchema = z.array(AnyComponentSchema).min(1);

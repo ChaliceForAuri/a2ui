@@ -76,7 +76,12 @@ export const ErrorMessageSchema = z
         .strict(),
       z
         .object({
-          code: z.string(),
+          code: z
+            .string()
+            .refine(
+              val => !['VALIDATION_FAILED', 'UNALLOWED_PARENT', 'UNALLOWED_CHILD'].includes(val),
+              {message: 'Special error codes must use the specific error schema.'},
+            ),
           message: z.string(),
           surfaceId: z.string().optional(),
           functionCallId: z.string().optional(),

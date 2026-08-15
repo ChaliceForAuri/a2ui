@@ -437,6 +437,25 @@ export class MessageProcessor<T extends ComponentApi> {
     return `/${path}`;
   }
 
+  private extractChildIds(childVal: any, list: string[] = []): string[] {
+    if (!childVal) return list;
+
+    if (typeof childVal === 'string') {
+      list.push(childVal);
+    } else if (Array.isArray(childVal)) {
+      for (const item of childVal) {
+        if (typeof item === 'string') {
+          list.push(item);
+        } else if (item && typeof item === 'object' && typeof item.componentId === 'string') {
+          list.push(item.componentId);
+        }
+      }
+    } else if (typeof childVal === 'object' && typeof childVal.componentId === 'string') {
+      list.push(childVal.componentId);
+    }
+    return list;
+  }
+
   private validateCompositionConstraints(surface: SurfaceModel<T>, newComponents: any[]): void {
     // 1. Build map of all component types in the surface (combining existing & new)
     const typeMap = new Map<string, string>();
@@ -449,20 +468,7 @@ export class MessageProcessor<T extends ComponentApi> {
         list = [];
         childMap.set(parentId, list);
       }
-
-      if (typeof childVal === 'string') {
-        list.push(childVal);
-      } else if (Array.isArray(childVal)) {
-        for (const item of childVal) {
-          if (typeof item === 'string') {
-            list.push(item);
-          } else if (item && typeof item === 'object' && typeof item.componentId === 'string') {
-            list.push(item.componentId);
-          }
-        }
-      } else if (typeof childVal === 'object' && typeof childVal.componentId === 'string') {
-        list.push(childVal.componentId);
-      }
+      this.extractChildIds(childVal, list);
     };
 
     for (const [id, model] of surface.componentsModel.entries) {

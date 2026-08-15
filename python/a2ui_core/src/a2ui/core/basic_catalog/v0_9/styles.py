@@ -16,7 +16,7 @@
 from typing import Any, Dict, List, Literal, Optional, Union
 from pydantic import BaseModel, Field, ConfigDict
 
-from ..schema.common_types import StrictBaseModel
+from ...schema.v0_9.common_types import StrictBaseModel
 
 
 class Theme(BaseModel):
